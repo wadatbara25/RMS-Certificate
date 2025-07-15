@@ -1,0 +1,32 @@
+@media print {
+	#print,#add,#navId{display:none}
+
+
+
+}
+.logout{
+	display: none;
+}
+a{
+	text-decoration-line: none;
+}
+
+
+body {
+	direction: rtl;
+}
+
+h1,
+div.info,
+ul.tabs,
+div.tabs,
+div.footer,div.header {
+	direction: rtl;
+}
+
+/* Ensure that the demo table scrolls */
+th, td { white-space: nowrap; }
+div.dataTables_wrapper {
+	
+	margin: 0 auto;
+}
