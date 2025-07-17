@@ -1,16 +1,16 @@
 <?php
 // Database configurations for different servers
 $server1 = array(
-    'server' => '.\computer',
+    'server' => 'computer.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'computer',
     'password' => 'P@ssw0rd'
 );
 
 $server2 = array(
-    'server' => '.\eco',
+    'server' => 'econamic.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'eco',
     'password' => 'P@ssw0rd'
 );
 $server3 = array(
@@ -20,27 +20,27 @@ $server3 = array(
     'password' => 'P@ssw0rd'
 );
 $server4 = array(
-    'server' => '.\law',
+    'server' => 'lawbut.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'law',
     'password' => 'P@ssw0rd'
 );
 $server5 = array(
-    'server' => '.\lms',
+    'server' => 'laborator.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'lms',
     'password' => 'P@ssw0rd'
 );
 $server6 = array(
-    'server' => '.\nurs',
+    'server' => 'nursing.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'nurs',
     'password' => 'P@ssw0rd'
 );
 $server7 = array(
-    'server' => '.\vet',
+    'server' => 'veterinary.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'vet',
     'password' => 'P@ssw0rd'
 );
 $server8 = array(
@@ -50,9 +50,9 @@ $server8 = array(
     'password' => 'P@ssw0rd'
 );
 $server9 = array(
-    'server' => '.\eco',
+    'server' => 'econamic.database.windows.net',
     'database' => 'RRS_Diploma',
-    'username' => 'sa',
+    'username' => 'eco',
     'password' => 'P@ssw0rd'
 );
 $server10 = array(
@@ -116,10 +116,10 @@ function connectToDatabase($selected_server) {
     // Establish SQL Server connection
     $conn = sqlsrv_connect($config['server'], $connectionInfo);
 
-   if ($conn === false) {
-    //die(print_r(sqlsrv_errors(), true));
-    echo "راجع الاتصال بالسيرفر";
-   }
+    if ($conn === false) {
+        die("فشل الاتصال بالخادم [{$config['server']}]: <br>" . print_r(sqlsrv_errors(), true));
+    }
+    
 
     return $conn;
 }
@@ -310,7 +310,12 @@ function faclitylink($lnk){
                         return 'generate_pdf.php';
                         break; 
                  
-             
+                        case 'FCS':
+                            return 'general_Edu.php';
+                        
+                            break;
+                            default:
+                            return 'generate_pdf.php';
             }
         }
         // faculty_Ar
@@ -320,19 +325,22 @@ function faclitylinkAr($lnk){
             return 'general_NursAr.php';
             break; 
         case 'FEDU':
-                return 'general_EduAr.php';
+                return 'generalEduAr.php';
                 break;
              case 'FERD':
-                    return 'general_EduAr.php';
+                    return 'generalEduAr.php';
                     break;
         case 'FMED':
-                    return 'generateAr.php';
+                    return 'GeneralAr.php';
                     break; 
                     case 'FVM':
-                        return 'generateAr.php';
+                        return 'GeneralAr.php';
                         break; 
-                 
-             
+                        case 'FCS':
+                            return 'generalEduAr.php';
+                            break;
+             default:
+             return 'GeneralAr.php';
             }
         }
 
@@ -354,8 +362,11 @@ function faclitylinkT($lnk){
                     case 'FVM':
                         return 'TransscriptEn.php';
                         break; 
-                 
-             
+                        case 'FCS':
+                            return 'TransscriptEnEdu.php';
+                            break;
+             default:
+             return 'TransscriptEn.php';
             }
         }
     
@@ -377,7 +388,11 @@ function faclitylinkTAr($lnk){
                     case 'FVM':
                         return 'TransscriptAr.php';
                         break; 
-                 
+                        case 'FCS':
+                            return 'TransscriptArEdu.php';
+                            break;
+                            default:
+                            return 'TransscriptAr.php';
              
             }
         }
