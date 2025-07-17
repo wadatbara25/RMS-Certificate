@@ -1,91 +1,129 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل الدخول</title>
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <style>
-        /* Additional custom styles can be added here */
-        body {
-            background-color: #f8f9fa;
-            padding: 50px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>جامعة البطانة</title>
 
-        .login-form {
-            max-width: 400px;
-            margin: 0 auto;
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
 
-        }
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
 
+    .login-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-        .card-header {
-            background-color: #727477ef;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-            border-bottom: 2px solid #0056b3;
-        }
+    .login-card {
+      width: 100%;
+      max-width: 420px;
+      border: none;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      border-radius: 12px;
+      overflow: hidden;
+    }
 
-        .card-header img {
-            max-width: 100px;
-            margin-bottom: 10px;
-        }
-    </style>
+    .login-card .card-header {
+      background-color: #343a40;
+      color: #fff;
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .login-card .card-header img {
+      max-width: 90px;
+      margin-bottom: 10px;
+    }
+
+    .login-card .card-body {
+      padding: 30px;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      border: none;
+      transition: 0.3s ease-in-out;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+    .form-control:invalid {
+      border-color: #dc3545;
+    }
+
+    .form-control:valid {
+      border-color: #28a745;
+    }
+  </style>
 </head>
 
 <body>
-    <div class="container">
-        <div class="row">
-            <div class="col-md-6 offset-md-3">
-                <div class="card mt-5">
-                    <div class="card-header">
-                        <img src="img/albutana.png" alt="Logo">
+  <div class="container login-container">
+    <div class="card login-card">
+      <div class="card-header">
+        <img src="img/albutana.png" alt="Logo">
+        <h5 class="mt-2">نظام ادارة بيانات الطلاب</h5>
+      </div>
+      <div class="card-body">
+        <form action="login.php" method="post" novalidate onsubmit="return validateForm()">
+          <div class="form-group">
+            <select id="server" name="server" class="form-control" required>
+              <option value="" disabled selected>-- اختر الكلية --</option>
+              <option value="1">الحاسوب</option>
+              <option value="2">الاقتصاد</option>
+              <option value="3">التربية</option>
+              <option value="4">الشريعة</option>
+              <option value="5">المختبرات</option>
+              <option value="6">التمريض</option>
+              <option value="7">البيطرة</option>
+              <option value="8">الطب</option>
+              <option value="9">دبلوم & انتساب اقتصاد</option>
+              <option value="10">انتساب التربية</option>
+            </select>
+            <div class="invalid-feedback">يرجى اختيار الكلية.</div>
+          </div>
 
-                    </div>
-                    <div class="card-body">
-                        <form action="login.php" method="post" class="login-form">
-                            <div class="form-group" dir="rtl">
-                                <label for="server">حدد الكلية:</label>
-                                <select id="server" name="server" class="form-control" required>
-                                    <option value="1">الحاسوب</option>
-                                    <option value="2">الاقتصاد</option>
-                                    <option value="3">التربية</option>
-                                    <option value="4">الشريعة</option>
-                                    <option value="5">المختبرات</option>
-                                    <option value="6">التمريض</option>
-                                    <option value="7">البيطرة</option>
-                                    <option value="8">الطب</option>
-                                    <option value="9"> دبلوم&انتساب اقتصاد</option>
-                                    <option value="10"> انتساب التربية</option>
+          <div class="form-group">
+            <input type="text" id="username" name="username" class="form-control" placeholder="اسم المستخدم" required />
+            <div class="invalid-feedback">يرجى إدخال اسم المستخدم.</div>
+          </div>
 
-                                    <!-- Add more options as needed -->
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="username">Username:</label>
-                                <input type="text" id="username" name="username" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="password">Password:</label>
-                                <input type="password" id="password" name="password" class="form-control" required>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit" class="btn btn-primary btn-block">Login</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+          <div class="form-group">
+            <input type="password" id="password" name="password" class="form-control" placeholder="كلمة المرور" required />
+            <div class="invalid-feedback">يرجى إدخال كلمة المرور.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">تسجيل الدخول</button>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <!-- Bootstrap JS and dependencies (jQuery, Popper.js) -->
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <!-- Bootstrap JS and validation support -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    function validateForm() {
+      const form = document.querySelector("form");
+      if (!form.checkValidity()) {
+        form.classList.add("was-validated");
+        return false;
+      }
+      return true;
+    }
+  </script>
 </body>
 
 </html>
