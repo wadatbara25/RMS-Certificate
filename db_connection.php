@@ -14,9 +14,9 @@ $server2 = array(
     'password' => 'P@ssw0rd'
 );
 $server3 = array(
-    'server' => '.\edu',
+    'server' => 'educations.database.windows.net',
     'database' => 'RRS_MANAGEMENT',
-    'username' => 'sa',
+    'username' => 'edu',
     'password' => 'P@ssw0rd'
 );
 $server4 = array(
@@ -56,9 +56,9 @@ $server9 = array(
     'password' => 'P@ssw0rd'
 );
 $server10 = array(
-    'server' => '.\edu',
+    'server' => 'educations.database.windows.net',
     'database' => 'RRS_Diploma',
-    'username' => 'sa',
+    'username' => 'edu',
     'password' => 'P@ssw0rd'
 );
 
