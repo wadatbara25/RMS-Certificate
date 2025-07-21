@@ -161,7 +161,7 @@ $GG=str_contains($Certificate['DegreeNameAr'],$General);
           
         }
         table.T2, th.T2,td.T2 {
-            border: 1px solid black;
+            border: 0px solid black;
             padding: 0px;
             text-align: center;
         }
