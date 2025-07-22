@@ -142,46 +142,111 @@ $GG=str_contains($Certificate['DegreeNameAr'],$General);
 <head>
 <meta charset="UTF-8"/>
     <title>شهادة عامة عربي</title>
-    <link rel="stylesheet" href="include/css/style.css">
-    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Almarai|Sofia|Trirong">
+                
+    <style>
+       table.T1{
+           border: 0px solid black;
+            padding: 0px;
+            background-color: #ffffff;
+            text-align: center;       
+        }
+      table.T2 {
+          
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 0px;
+            text-align:center;
+            font-size:12px;
+          
+        }
+        table.T2, th.T2,td.T2 {
+            border: 0px solid black;
+            padding: 0px;
+            text-align: center;
+        }
+        table.T2,th.T2{
+           
+        }
+        
+       
+        .total-row {
+            font-weight: bold;
+            background-color: #e0e0e0;
+        }
+
+        hr.new1 {
+    border-top: 1px dashed red;
+  }
+  
+    </style>
 </head>
 <body>
 
-<div><img width="120" height="120" src="data:image/jpeg;base64,<?php echo base64_encode($Certificate['Photo'])?>"/> </div>
-<div>
-         <h5><?php echo $Certificate['AdmissionFormNo']; ?>:الرقم الجامعي</h5></div>
- <div align="center"><b style=" font-family:'Droid Arabic Kufi'; font-size:24px;">شهـادة </b></div>
+<table class="T2" border="0" padding="0" border-spacing="0" align="center" width="90%">
+      <tr align="left">
+        <td><img width="120" height="120" src="data:image/jpeg;base64,<?php echo base64_encode($Certificate['Photo'])?>"/> </td>
+        <th></th>
+        <th></th>
+    </tr>
+    <tr align="left">
+         <td><h5><?php echo $Certificate['AdmissionFormNo']; ?>:الرقم الجامعي</h5></td>
+         <td clospan="2"></td>
+        
+     </tr>
+     
+     
+     <tr align="center">
        
-   <div align="right"> <b style="font-family: 'arabtype'; font-size:30px;">: نشهد بأن مجلس الأساتذة قد منح</b></div>
-  
-  <div align="right"><h2><u> <?php echo $Certificate['StudentName'];?> </u> - الجنسية: <u><?php echo $Certificate['StudentNationality'];?></u>  
-   </h2> </div>
-   <div align="right"  style="font-family: 'arabtype'; font-size:28px; ">
-    <div align="center">
-    
-        <b>درجة <?php echo $Certificate['DegreeNameAr'];?></b>
+       <td colspan="3"><b style="font-family: 'Almarai', sans-serif; font-size:40px;" >شهـادة </b></td>
+       
+    </tr>
+    <tr align="center">
+       
+       <td colspan="3"><br></td>
+       
+    </tr>
    
-    
-    </div>
+    <tr align="right">
+       
+       <td colspan="3"><b style="font-family: 'Almarai', sans-serif; font-size:24px;"">: نشهد يأن مجلس الأساتذة قد منح</b></td>
   
-  <div><b>الكلية:<?php echo $Certificate['FacultyName'];?></b></div>
-  
-  <div><b>&nbsp;<u><?php echo $Class.':'.$message;?></u></b></div>
+    </tr>
+     
+     <tr align="right">
+        
+        <td><h2>الجنسية: <u><?php echo $Certificate['StudentNationality'];?></u> </h2> </td>
+        <td colspan="2"> <h2><u> <?php echo $Certificate['StudentName'];?> </u> </h2> </td>
+        
+    </tr>
+    <tr align="center">
+        <td colspan="3"><h2><?php echo $Certificate['DegreeNameAr'];?></h2></td>
    
+     </tr>
+     <tr align="right">
+        <td colspan="3"><h2>&nbsp;<u><?php echo $Class.':'.$message;?></u></h2></td>
+   
+     </tr>
+     <tr align="right">
+        <td colspan="3"><h2>الكلية:<?php echo $Certificate['FacultyName'];?></h2></td>
+   
+     </tr>
+    <tr align="right">
         
      
-        <div><b>التخصص :&nbsp;<u><?php echo $Certificate['DepartmentName'];?> </u></b></div>
-    
+        <th colspan="3"><h2>التخصص :&nbsp;<u><?php echo $Certificate['DepartmentName'];?> </u></h2></th>
+    </tr>
    
-    
+     <tr align="right">
         
-        <div><b>&nbsp;<u><?php echo $GradDate;?> :تاريخ  منح الدرجة</u></b></div>
+        <th colspan="3"><h2>&nbsp;<u><?php echo $GradDate;?> :تاريخ  منح الدرجة</u></h2></th>
        
-   
+    </tr>
+    <tr align="right">
         
-        <div><b>&nbsp;<u><?php echo $DateNow;?> :تاريخ  اصدار الشهادة</u></b></div>
-    </div>
-   <table width="100%">
+        <th colspan="3"><h2>&nbsp;<u><?php echo $DateNow;?> :تاريخ  اصدار الشهادة</u></h2></th>
+       
+    </tr>
     
      <tr align="center">
      <td colspan="2"><img  width="100" height="100" src="img/<?php echo$Signatures['ImgDeann'];?>"></td>
@@ -196,8 +261,8 @@ $GG=str_contains($Certificate['DegreeNameAr'],$General);
         
      </tr>
      <tr align="center">
-     <th colspan="2"><b>عميد الكلية</b></th>
-         <th><b>مسجل الكلية</b></th>
+     <th colspan="2"><h2>عميد الكلية</h2></th>
+         <th><h2>مسجل الكلية</h2></th>
          
          
      </tr>
@@ -210,7 +275,7 @@ $GG=str_contains($Certificate['DegreeNameAr'],$General);
      </tr>
      <tr align="center">
      
-         <th colspan="3"><b>أمين الشؤون العلمية</b></th>
+         <th colspan="3"><h2>أمين الشؤون العلمية</h2></th>
         
      </tr>
   
