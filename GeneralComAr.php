@@ -193,7 +193,7 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
     <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> </td><td><div align="center"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td></tr>
 
     <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">الكليـة: </td><td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></td></tr>
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> التخصص</td><td><u><?= htmlspecialchars($Certificate['SpecializationName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></b></td></tr>
+    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"><?= htmlspecialchars($Class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')?>:</td><td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></b></td></tr>
     <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> تاريخ  منح الدرجة:</td><td><u><?= $GradDate ?></u></b></td></tr>
     <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ  اصدار الشهادة:</td><td><u><?= $DateNow ?> </u></b></td></tr>
 </table>

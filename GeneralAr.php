@@ -1,288 +1,230 @@
 <?php
-// Database connection parameters
-// $serverName = "."; // Replace with your server name
-// $connectionOptions = [
-//     "Database" => "RRS_Diploma", // Replace with your database name
-//     "Uid" => "sa", // Replace with your database username
-//     "PWD" => "123" // Replace with your database password
-// ];
 session_start();
 include 'db_connection.php';
 
-if (!isset($_SESSION["username"])) {
+if (empty($_SESSION["username"])) {
     header("Location: login.php");
     exit();
 }
+
 $selectedServer = $_SESSION["server"];
-$id = isset($_GET["id"]) ? $_GET["id"] : null;
+$id = $_GET["id"] ?? null;
 
-  //Transscript call
-
-  $conn = connectToDatabase($selectedServer);
-  if ($conn === false) {
-      die(print_r(sqlsrv_errors(), true));
-  }
-  
-  // Grade points mapping
-  
-  
-  
-      $sql = "select  * from TranscriptF('$id')    
-      order by SemesterID,SubjectNameEng
-   ";
-      
-   $TRRR = sqlsrv_query($conn, $sql);
-   
-   if ($TRRR === false) {
-       die(print_r(sqlsrv_errors(), true));
-   }
-   
-   // Initialize arrays to hold data by semester and grand total calculation
-   $data = [];
-   
-   while ($row = sqlsrv_fetch_array($TRRR, SQLSRV_FETCH_ASSOC)) {
-          $semester = $row['SemesterID'];
-      $subject = $row['SubjectName'];
-      $hours = $row['SubjectHours'];
-      $grade = $row['SubjectGradeEng'];
-      $gradePointsValue = $row['GradePoint'];
-   
-  
-      if (!isset($data[$semester])) {
-          $data[$semester] = [];
-      }
-  
-      $data[$semester][] = [
-          'Subject' => $subject,
-          'Hours' => $hours,
-          'Grade' => $grade,
-          'GradePoints' => $gradePointsValue,
-         
-      ];
-      //sqlsrv_close($conn);
-  
-  //return $Transe;
-  }
-
-
-
-  if ($id) {
-    $Certificate=getCertificte($selectedServer, $id);
-    $row = getUserById($selectedServer, $id);
-    $Signatures = getAllSignatures($selectedServer, $id);
-    // Check if faculty data exists
-    if ($Certificate === null||$row === null||$Signatures === null) {
-        echo "No Result Found";
-    }
-    $GradDate = $Certificate['GraduationDate']->format('Y/m/d');
-    $AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
-    $DateNow = date("Y/m/d");
-    // Check if user data exists
-   
-    
-} else {
-    die("Invalid user ID");
+function renderErrorPage($message) {
+    echo '
+    <!DOCTYPE html>
+    <html lang="ar">
+    <head>
+        <meta charset="UTF-8">
+        <title>خطأ</title>
+        <style>
+            body {
+                font-family: "Almarai", sans-serif;
+                background-color: #f9f9f9;
+                color: #c00;
+                text-align: center;
+                direction: rtl;
+                padding: 100px 20px;
+            }
+            .error-box {
+                display: inline-block;
+                background: #ffeaea;
+                border: 2px solid #f99;
+                padding: 20px 40px;
+                border-radius: 10px;
+                font-size: 20px;
+            }
+            a {
+                color: blue;
+                text-decoration: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="error-box">
+            <h1>⚠️ خطأ في البيانات</h1>
+            <p>' . htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+            <br>
+            <p><a href="javascript:history.back();">🔙 العودة للخلف</a></p>
+        </div>
+    </body>
+    </html>';
+    exit();
 }
 
-// Devition
-function divition($dev){
-    switch($dev){
-        case $dev>=3.50:
-            return 'الأولى';
-            break; 
-        case $dev>=3.00:
-                    return 'الثانية - القسم الأول';
-                    break; 
-        case $dev>=2.50:
-                        return 'الثانية - القسم الثاني';
-                        break;
-        case $dev<2.50:
-                        return 'الثالثة';
-                        break;
-       
-      
-            }
-        }
+if (!$id) {
+    renderErrorPage("لم يتم تحديد معرف الطالب.");
+}
 
-        
-        // General
-function divitionG($devG){
-    switch($devG){
-        case $devG>=3.50:
-            return 'الأولى';
-            break; 
-         case $devG>=2.50:
-                    return 'الثانية';
-                    break; 
-        case $devG<2.50:
-                        return 'الثالثة';
-                        break;
-       
-      
-            }
-        }
+$conn = connectToDatabase($selectedServer);
+if (!$conn) {
+    renderErrorPage("فشل الاتصال بقاعدة البيانات.");
+}
 
+$sql = "SELECT * FROM TranscriptF(?) ORDER BY SemesterID, SubjectNameEng";
+$params = [$id];
+$TRRR = sqlsrv_query($conn, $sql, $params);
+if (!$TRRR) {
+    renderErrorPage("فشل في جلب السجل الأكاديمي.");
+}
 
-//General
+$Certificate = getCertificte($selectedServer, $id);
+$row = getUserById($selectedServer, $id);
 
-$General='شرف';
-$GG=str_contains($Certificate['DegreeNameAr'],$General);
+$facultyId = $Certificate['FacultyID'] ?? null;
+if (!$facultyId) {
+    renderErrorPage("لم يتم تحديد الكلية المرتبطة بالطالب.");
+}
 
-      if($GG== 0){
-        $message=divitionG($Certificate['CGPA']);
-        $Class='الدرجة';
-      } else
-      {
-        $message=divition($Certificate['CGPA']);
-        $Class='المرتبة';
-      }
+$Signatures = getAllSignatures($selectedServer, $facultyId);
+if (!$Signatures) renderErrorPage("لم يتم العثور على بيانات التوقيعات.");
+if (!$Certificate) renderErrorPage("لم يتم العثور على بيانات الشهادة للطالب.");
+if (!$row) renderErrorPage("لم يتم العثور على بيانات الطالب.");
+
+$GradDate = $Certificate['GraduationDate']->format('Y/m/d');
+$DateNow = date("Y/m/d");
+
+function divition($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'الأولى',
+        $gpa >= 3.00 => 'الثانية - القسم الأول',
+        $gpa >= 2.50 => 'الثانية - القسم الثاني',
+        default => 'الثالثة'
+    };
+}
+
+function divitionG($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'الأولى',
+        $gpa >= 2.50 => 'الثانية',
+        default => 'الثالثة'
+    };
+}
+
+$General = 'شرف';
+$isHonorDegree = str_contains($Certificate['DegreeNameAr'], $General);
+$message = $isHonorDegree ? divition($Certificate['CGPA']) : divitionG($Certificate['CGPA']);
+$Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
 ?>
+
 <!DOCTYPE html>
-<html>
+<html lang="ar">
 <head>
-<meta charset="UTF-8"/>
+    <meta charset="UTF-8">
     <title>شهادة عامة عربي</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Almarai|Sofia|Trirong">
-                
+    <link rel="stylesheet" href="include/css/style.css">
     <style>
-       table.T1{
-           border: 0px solid black;
-            padding: 0px;
-            background-color: #ffffff;
-            text-align: center;       
+        #printBtn {
+            display: block;
+            margin: 20px auto;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: 'Almarai', sans-serif;
+            transition: background-color 0.3s ease;
         }
-      table.T2 {
-          
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 0px;
-            text-align:center;
-            font-size:12px;
-          
+        #printBtn:hover {
+            background-color: #0056b3;
         }
-        table.T2, th.T2,td.T2 {
-            border: 1px solid black;
-            padding: 0px;
-            text-align: center;
-        }
-        table.T2,th.T2{
-           
-        }
-        
-       
-        .total-row {
-            font-weight: bold;
-            background-color: #e0e0e0;
+        @media print {
+            #printBtn { display: none !important; }
         }
 
-        hr.new1 {
-    border-top: 1px dashed red;
-  }
-  
+        table img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain; /* يحافظ على نسبة الأبعاد بدون تمديد */
+    image-rendering: crisp-edges;
+    -webkit-image-rendering: crisp-edges;
+    image-rendering: pixelated;
+    border: none; /* إزالة أي إطار */
+    display: block; /* لمنع أي مسافات تحت الصورة */
+    margin: 0 auto; /* لو تريد الصور في الوسط داخل الخلايا */
+}
+
     </style>
+    <script>
+    function printCertificate() {
+        const btn = document.getElementById('printBtn');
+        btn.style.display = 'none';
+        window.print();
+        btn.style.display = 'block';
+    }
+    </script>
 </head>
 <body>
 
-<table class="T2" border="0" padding="0" border-spacing="0" align="center" width="90%">
-      <tr align="left">
-        <td><img width="120" height="120" src="data:image/jpeg;base64,<?php echo base64_encode($Certificate['Photo'])?>"/> </td>
-        <th></th>
-        <th></th>
-    </tr>
-    <tr align="left">
-         <td><h5><?php echo $Certificate['AdmissionFormNo']; ?>:الرقم الجامعي</h5></td>
-         <td clospan="2"></td>
-        
-     </tr>
-     
-     
-     <tr align="center">
-       
-       <td colspan="3"><b style="font-family: 'Almarai', sans-serif; font-size:40px;" >شهـادة </b></td>
-       
-    </tr>
-    <tr align="center">
-       
-       <td colspan="3"><br></td>
-       
-    </tr>
-   
-    <tr align="right">
-       
-       <td colspan="3"><b style="font-family: 'Almarai', sans-serif; font-size:24px;"">: نشهد يأن مجلس الأساتذة قد منح</b></td>
-  
-    </tr>
-     
-     <tr align="right">
-        
-        <td><h2>الجنسية: <u><?php echo $Certificate['StudentNationality'];?></u> </h2> </td>
-        <td colspan="2"> <h2><u> <?php echo $Certificate['StudentName'];?> </u> </h2> </td>
-        
-    </tr>
-    <tr align="center">
-        <td colspan="3"><h2><?php echo $Certificate['DegreeNameAr'];?></h2></td>
-   
-     </tr>
-     <tr align="right">
-        <td colspan="3"><h2>&nbsp;<u><?php echo $Class.':'.$message;?></u></h2></td>
-   
-     </tr>
-     <tr align="right">
-        <td colspan="3"><h2>الكلية:<?php echo $Certificate['FacultyName'];?></h2></td>
-   
-     </tr>
-    <tr align="right">
-        
-     
-        <th colspan="3"><h2>التخصص :&nbsp;<u><?php echo $Certificate['DepartmentName'];?> </u></h2></th>
-    </tr>
-   
-     <tr align="right">
-        
-        <th colspan="3"><h2>&nbsp;<u><?php echo $GradDate;?> :تاريخ  منح الدرجة</u></h2></th>
-       
-    </tr>
-    <tr align="right">
-        
-        <th colspan="3"><h2>&nbsp;<u><?php echo $DateNow;?> :تاريخ  اصدار الشهادة</u></h2></th>
-       
-    </tr>
-    
-     <tr align="center">
-     <td colspan="2"><img  width="100" height="100" src="img/<?php echo$Signatures['ImgDeann'];?>"></td>
+<button id="printBtn" onclick="printCertificate()">🖨️ طباعة الشهادة</button>
 
-        <td><img  width="100" height="100" src="img/<?php echo $Signatures['Imgregg'];?>"></td>
-        
-     </tr>
-     <tr align="center">
-     <th colspan="2"><h2><i><?php echo $Signatures['FacultyDean_NameA'];?></i></h2></th>
-         <th nowrap> <h2><i><?php echo $Signatures['FacultyRegistrar_NameA'];?></i></h2></th>
-         
-        
-     </tr>
-     <tr align="center">
-     <th colspan="2"><h2>عميد الكلية</h2></th>
-         <th><h2>مسجل الكلية</h2></th>
-         
-         
-     </tr>
+<?php if (!empty($Certificate['Photo'])): ?>
+    <div style="width: 120px; height: 120px; margin-bottom: 10px;">
+        <img 
+            src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
+            alt="صورة الطالب"
+            style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; display: block;"
+        />
+    </div>
+<?php endif; ?>
+
+<h5><?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>:الرقم الجامعي</h5>
+
+<div align="center">
+    <b style="font-family:'Droid Arabic Kufi'; font-size:24px;">شهـادة </b>
+</div>
+
+<div align="right">
+    <b style="font-family: 'Amiri'; font-size:28px;">: نشهد بأن مجلس الأساتذة قد منح</b>
+</div>
+
+<div align="right">
+    <b style="font-family:'Droid Arabic Kufi'; font-size:16px;">
+        <?= htmlspecialchars($Certificate['StudentName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+        - الجنسية:
+        <?= htmlspecialchars($Certificate['StudentNationality'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+</b>
     
-      
+
+</div>
+<table  align="right" style="font-family:'Droid Arabic Kufi'; font-size:16px" dir="rtl" >
+    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> </td><td><div align="center"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td></tr>
+
+    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">الكليـة: </td><td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></td></tr>
+    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> تاريخ  منح الدرجة:</td><td><u><?= $GradDate ?></u></b></td></tr>
+    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ  اصدار الشهادة:</td><td><u><?= $DateNow ?> </u></b></td></tr>
+</table>
+<table width="100%">
+    <tr align="center">
+        <td colspan="2">
+            <img width="100" height="100" src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png') ?>" alt="توقيع عميد الكلية">
+        </td>
+        <td>
+            <img width="100" height="100" src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png') ?>" alt="توقيع مسجل الكلية">
+        </td>
+    </tr>
+    <tr align="center">
+        <th colspan="2"><b style="font-family:'Amiri'; font-size:16px;"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></th>
+        <th nowrap><b style="font-family:'Amiri'; font-size:16px;"><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></th>
+    </tr>
+    <tr align="center">
+        <th colspan="2"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">عميد الكلية</b></th>
+        <th><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">مسجل الكلية</b></th>
+    </tr>
      <tr align="center">
-      
-         <th colspan="3"><h2><i><?php echo $Signatures['AcademicAffairsDean_NameA'];?></i></h2></th>
-      
-     </tr>
-     <tr align="center">
-     
-         <th colspan="3"><h2>أمين الشؤون العلمية</h2></th>
-        
-     </tr>
-  
- </table>
-    </body>
+        <td colspan="3"><b><br><br><br> </b></td>   
+    </tr>  
+    <tr align="center">
+        <th colspan="3"><b style="font-family:'Amiri'; font-size:16px;"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></th>
+    </tr>
+    <tr align="center">
+        <th colspan="3"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">أمين الشؤون العلمية</b></th>
+    </tr>
+</table>
+
+</body>
 </html>
-<?php
-// Close the connection
-//sqlsrv_close($conn);
-?>
+
+<?php sqlsrv_close($conn); ?>
