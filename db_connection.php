@@ -216,10 +216,10 @@ function faclitylinkT($lnk) {
 
 function faclitylinkTAr($lnk) {
     return match($lnk) {
-        'FMAS' => 'TransscriptArNurs.php',
-        'FEDU', 'FERD', 'FCS' => 'TransscriptArEdu.php',
-        'FMED', 'FVM' => 'TransscriptAr.php',
-        default => 'TransscriptAr.php'
+        'FMAS' => 'TransscriptComAr.php',
+        'FEDU', 'FERD', 'FCS' => 'TransscriptComAr.php',
+        'FMED', 'FVM' => 'TransscriptComAr.php',
+        default => 'TransscriptComAr.php'
     };
 }
 ?>

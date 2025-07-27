@@ -144,6 +144,8 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
     border: none; /* إزالة أي إطار */
     display: block; /* لمنع أي مسافات تحت الصورة */
     margin: 0 auto; /* لو تريد الصور في الوسط داخل الخلايا */
+    filter: brightness(1.1) contrast(1.1);
+        
 }
 
     </style>
@@ -162,10 +164,10 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
 
 <?php if (!empty($Certificate['Photo'])): ?>
     <div style="width: 120px; height: 120px; margin-bottom: 10px;">
-        <img 
+        <img class="student-photo"
+            style="width: 100%; height: 100%; object-fit: contain;"
             src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
             alt="صورة الطالب"
-            style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; display: block;"
         />
     </div>
 <?php endif; ?>
