@@ -2,21 +2,19 @@
 header("Content-Type: application/json");
 include '../db_connection.php'; // الاتصال بقواعد البيانات المختلفة
 
+// قراءة بيانات JSON من الطلب
 $input = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($input['student_id']) || !isset($input['transactionId'])) {
-    echo json_encode([
-        "status" => "101",
-        "statusDescription" => "Missing parameters: student_id or transactionId.",
-        "msg" => "Missing parameters: student_id or transactionId."
-    ]);
-    exit;
+// التحقق من وجود المعاملات المطلوبة
+if (empty($input['student_id']) || empty($input['transactionId'])) {
+    respondWithError("101", "Missing parameters: student_id or transactionId.");
 }
 
+// تنظيف وتنسيق القيم المدخلة
 $studentID = strtoupper(trim($input['student_id']));
 $transactionId = trim($input['transactionId']);
 
-// استخراج البادئة لتحديد رقم السيرفر المناسب
+// تحديد السيرفر بناءً على بادئة الرقم الجامعي
 $prefix4 = substr($studentID, 0, 4);
 $prefix3 = substr($studentID, 0, 3);
 
@@ -40,29 +38,72 @@ $facultyPrefixes = [
 $prefix = $facultyPrefixes[$prefix4] ?? ($facultyPrefixes[$prefix3] ?? null);
 
 if (!$prefix) {
-    echo json_encode([
-        "status" => "102",
-        "statusDescription" => "Invalid student ID prefix."
-    ]);
-    exit;
+    respondWithError("102", "Invalid student ID prefix.");
 }
 
-// الاتصال بقاعدة البيانات المحلية للتحقق من الدفع السابق
-$connLocal = connectToDatabase('local'); // تأكد أن هذا الاتصال المحلي يحتوي جدول الدفعيات
-if ($connLocal === false) {
-    echo json_encode([
-        "status" => "103",
-        "statusDescription" => "Failed to connect to local DB"
-    ]);
-    exit;
+// الاتصال بقاعدة البيانات المحلية
+$connLocal = connectToDatabase('local');
+if (!$connLocal) {
+    respondWithError("103", "Failed to connect to local DB.");
 }
 
-// تحقق من السجل السابق
+// التحقق من الدفع المسبق لنفس المعاملة
 $checkSql = "SELECT amount FROM ReceivedPaymentsFromBank WHERE student_id = ? AND transaction_id = ?";
 $checkStmt = sqlsrv_query($connLocal, $checkSql, [$studentID, $transactionId]);
 
 if ($checkStmt && ($row = sqlsrv_fetch_array($checkStmt, SQLSRV_FETCH_ASSOC))) {
     $amount = number_format(floatval($row['amount']), 2, '.', '');
+    sqlsrv_close($connLocal);
+    respondWithSuccess($studentID, $transactionId, $amount, "Already processed");
+}
+
+// الاتصال بقاعدة بيانات الطالب حسب البادئة
+$connStudent = connectToDatabase($prefix);
+if (!$connStudent) {
+    respondWithError("104", "Failed to connect to student DB.");
+}
+
+// استعلام عن الرسوم
+$sql = "SELECT StudyFees, RegistrationFees FROM dbo.StudentLatestFeesByAdmissionNo(?)";
+$stmt = sqlsrv_query($connStudent, $sql, [$studentID]);
+
+if (!$stmt) {
+    sqlsrv_close($connStudent);
+    respondWithError("105", "Query execution failed.");
+}
+
+$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
+sqlsrv_free_stmt($stmt);
+sqlsrv_close($connStudent);
+
+if (!$row) {
+    respondWithError("106", "Student not found or no fees.");
+}
+
+// حساب المبلغ الإجمالي
+$totalAmount = floatval($row['StudyFees'] ?? 0) + floatval($row['RegistrationFees'] ?? 0);
+$amountFormatted = number_format($totalAmount, 2, '.', '');
+
+// حفظ السجل في قاعدة البيانات المحلية
+$insertSql = "INSERT INTO ReceivedPaymentsFromBank (student_id, transaction_id, amount, received_at) VALUES (?, ?, ?, GETDATE())";
+sqlsrv_query($connLocal, $insertSql, [$studentID, $transactionId, $totalAmount]);
+sqlsrv_close($connLocal);
+
+// إرسال الرد النهائي
+respondWithSuccess($studentID, $transactionId, $amountFormatted, "Successful inquiry");
+
+// دوال مساعدة
+
+function respondWithError($code, $message) {
+    echo json_encode([
+        "status" => $code,
+        "statusDescription" => $message,
+        "msg" => $message
+    ]);
+    exit;
+}
+
+function respondWithSuccess($studentID, $transactionId, $amount, $description) {
     echo json_encode([
         "student_id" => $studentID,
         "transaction id" => $transactionId,
@@ -70,62 +111,8 @@ if ($checkStmt && ($row = sqlsrv_fetch_array($checkStmt, SQLSRV_FETCH_ASSOC))) {
         "minAmount" => $amount,
         "maxAmount" => $amount,
         "status" => "0",
-        "statusDescription" => "Already processed"
+        "statusDescription" => $description
     ]);
     exit;
 }
-
-// استعلام جديد
-$conn = connectToDatabase($prefix);
-if ($conn === false) {
-    echo json_encode([
-        "status" => "104",
-        "statusDescription" => "Failed to connect to student DB"
-    ]);
-    exit;
-}
-
-$sql = "SELECT StudyFees, RegistrationFees FROM dbo.StudentLatestFeesByAdmissionNo(?)";
-$params = [$studentID];
-$stmt = sqlsrv_query($conn, $sql, $params);
-
-if ($stmt === false) {
-    sqlsrv_close($conn);
-    echo json_encode([
-        "status" => "105",
-        "statusDescription" => "Query execution failed"
-    ]);
-    exit;
-}
-
-$row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC);
-sqlsrv_free_stmt($stmt);
-sqlsrv_close($conn);
-
-if (!$row) {
-    echo json_encode([
-        "status" => "106",
-        "statusDescription" => "Student not found or no fees"
-    ]);
-    exit;
-}
-
-$total = floatval($row['StudyFees'] ?? 0) + floatval($row['RegistrationFees'] ?? 0);
-$amountFormatted = number_format($total, 2, '.', '');
-
-// حفظ السجل في قاعدة البيانات المحلية
-$insertSql = "INSERT INTO ReceivedPaymentsFromBank (student_id, transaction_id, amount, received_at) VALUES (?, ?, ?, GETDATE())";
-sqlsrv_query($connLocal, $insertSql, [$studentID, $transactionId, $total]);
-sqlsrv_close($connLocal);
-
-// إرسال الرد النهائي
-echo json_encode([
-    "student_id" => $studentID,
-    "transaction id" => $transactionId,
-    "amount" => $amountFormatted,
-    "minAmount" => $amountFormatted,
-    "maxAmount" => $amountFormatted,
-    "status" => "0",
-    "statusDescription" => "Successful inquiry"
-]);
 ?>
