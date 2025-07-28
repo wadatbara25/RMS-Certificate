@@ -36,10 +36,10 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         $data[$semester] = [];
     }
     $data[$semester][] = [
-        'Subject'     => $row['SubjectNameEng'],
-        'Hours'       => $row['SubjectHours'],
-        'Grade'       => $row['SubjectGradeEng'],
-        'GradePoints' => $row['GradePoint'],
+        'Subject'     => $row['SubjectNameEng'] ?? '',
+        'Hours'       => $row['SubjectHours'] ?? '',
+        'Grade'       => $row['SubjectGradeEng'] ?? '',
+        'GradePoints' => $row['GradePoint'] ?? 0,
     ];
 }
 
@@ -109,28 +109,28 @@ if (!function_exists('division')) {
     <table class="T1" align="center">
         <tr align="left">
             <td>
-                <img class="student-photo" src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" alt="Student Photo" />
+                <img class="student-photo" src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo'] ?? '') ?>" alt="Student Photo" />
             </td>
             <td></td>
             <td></td>
         </tr>
         <tr align="left">
-            <td><b style="font-family:'TimeNews'; font-size:11px;">Student No: <?= htmlspecialchars($Certificate['AdmissionFormNo']) ?></b></td>
+            <td><b style="font-family:'TimeNews'; font-size:11px;">Student No: <?= htmlspecialchars($Certificate['AdmissionFormNo'] ?? '') ?></b></td>
             <td colspan="2"></td>
         </tr>
         <tr align="center">
-            <td colspan="3"><b>Faculty of <?= htmlspecialchars($Certificate['FacultyNameEng']) ?></b></td>
+            <td colspan="3"><b>Faculty of <?= htmlspecialchars($Certificate['FacultyNameEng'] ?? '') ?></b></td>
         </tr>
         <tr align="center">
             <td colspan="3"><b>ACADEMIC RECORD<hr class="new1"></b></td>
         </tr>
         <tr align="left">
-            <td colspan="2"><b>Name: <u><?= htmlspecialchars($Certificate['StudentNameEng']) ?></u></b></td>
-            <td><b>Nationality: <u><?= htmlspecialchars($Certificate['StudentNationalityEng']) ?></u></b></td>
+            <td colspan="2"><b>Name: <u><?= htmlspecialchars($Certificate['StudentNameEng'] ?? '') ?></u></b></td>
+            <td><b>Nationality: <u><?= htmlspecialchars($Certificate['StudentNationalityEng'] ?? '') ?></u></b></td>
         </tr>
         <tr align="left">
             <td colspan="2"><b>Admission Date: </b> <u><?= $AddDate ?></u></td>
-            <td><b>Specialization: </b> <u><?= htmlspecialchars($Certificate['SpecializationNameE']) ?></u></td>
+            <td><b>Specialization: </b> <u><?= htmlspecialchars($Certificate['SpecializationNameE'] ?? '') ?></u></td>
         </tr>
         <tr>
             <td colspan="3">
@@ -144,7 +144,7 @@ if (!function_exists('division')) {
                     ?>
                         <table class="T2">
                             <tr>
-                                <td colspan="3" align="left" style="border:none;">Semester <?= htmlspecialchars($semester) ?>:</td>
+                                <td colspan="3" align="left" style="border:none;">Semester <?= htmlspecialchars($semester ?? '') ?>:</td>
                             </tr>
                             <tr bgcolor="#f2f2f2">
                                 <th width="70%">Subject</th>
@@ -156,9 +156,9 @@ if (!function_exists('division')) {
                                 $semesterPoints += $sub['GradePoints'];
                             ?>
                                 <tr>
-                                    <td align="left">&nbsp;&nbsp;<?= htmlspecialchars($sub['Subject']) ?></td>
-                                    <td><?= htmlspecialchars($sub['Hours']) ?></td>
-                                    <td><?= htmlspecialchars($sub['Grade']) ?></td>
+                                    <td align="left">&nbsp;&nbsp;<?= htmlspecialchars($sub['Subject'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($sub['Hours'] ?? '') ?></td>
+                                    <td><?= htmlspecialchars($sub['Grade'] ?? '') ?></td>
                                 </tr>
                             <?php endforeach;
                             $TotalHours += $semesterHours;
@@ -181,12 +181,12 @@ if (!function_exists('division')) {
             </td>
         </tr>
         <tr align="center">
-            <td><img class="signature" src="img/<?= htmlspecialchars($Signatures['Imgregg']) ?>" alt="Registrar Signature" /></td>
-            <td colspan="2"><img class="signature" src="img/<?= htmlspecialchars($Signatures['ImgDeann']) ?>" alt="Dean Signature" /></td>
+            <td><img class="signature" src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? '') ?>" alt="Registrar Signature" /></td>
+            <td colspan="2"><img class="signature" src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? '') ?>" alt="Dean Signature" /></td>
         </tr>
         <tr align="center">
-            <td><b><i><?= htmlspecialchars($Signatures['FacultyRegistrar_NameE']) ?></i></b></td>
-            <td colspan="2"><b><i><?= htmlspecialchars($Signatures['FacultyDean_NameE']) ?></i></b></td>
+            <td><b><i><?= htmlspecialchars($Signatures['FacultyRegistrar_NameE'] ?? '') ?></i></b></td>
+            <td colspan="2"><b><i><?= htmlspecialchars($Signatures['FacultyDean_NameE'] ?? '') ?></i></b></td>
         </tr>
         <tr align="center">
             <td>Registrar</td>
@@ -194,7 +194,7 @@ if (!function_exists('division')) {
         </tr>
         <tr><td colspan="3"><br></td></tr>
         <tr align="center">
-            <td colspan="3"><br><br><br><b><i><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameE']) ?></i></b></td>
+            <td colspan="3"><br><br><br><b><i><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameE'] ?? '') ?></i></b></td>
         </tr>
         <tr align="center">
             <td colspan="3">Secretary of Academic Affairs</td>
