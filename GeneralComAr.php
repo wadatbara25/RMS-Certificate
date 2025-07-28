@@ -165,7 +165,7 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
 <?php if (!empty($Certificate['Photo'])): ?>
     <div style="width: 120px; height: 120px; margin-bottom: 10px;">
         <img class="student-photo"
-            style="width: 100%; height: 100%; object-fit: contain;"
+            style="width: 100%; height: 100%; object-fit: contain; border: 0px solid #000; border-radius: 2px;"
             src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
             alt="صورة الطالب"
         />

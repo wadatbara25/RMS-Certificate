@@ -175,10 +175,10 @@ if (empty($users)) {
                         <td><?= e($user["StudentName"] ?? '') ?></td>
                         <td><a class="btn btn-success btn-sm" href="<?= faclitylinkAr($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربية</a></td>
                         <td><a class="btn btn-info btn-sm" href="<?= faclitylink($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزية</a></td>
-                        <td><a class="btn btn-success btn-sm" href="<?= faclitylinkTAr($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربية</a></td>
-                        <td><a class="btn btn-info btn-sm" href="<?= faclitylinkT($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزية</a></td>
-                        <td><a class="btn btn-success btn-sm" href="AcademicAr.php?id=<?= urlencode($facultyID) ?>">عربية</a></td>
-                        <td><a class="btn btn-info btn-sm" href="AcademicEn.php?id=<?= urlencode($facultyID) ?>">إنجليزية</a></td>
+                        <td><a class="btn btn-success btn-sm" href="<?= faclitylinkTAr($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربي</a></td>
+                        <td><a class="btn btn-info btn-sm" href="<?= faclitylinkT($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزي</a></td>
+                        <td><a class="btn btn-info btn-sm" href="AcademicAr.php?id=<?= urlencode($user["StudentID"] ?? '') ?>">ع</a></td>
+                        <td><a class="btn btn-info btn-sm" href="AcademicEn.php?id=<?= urlencode($user["StudentID"] ?? '')?>">En</a></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
