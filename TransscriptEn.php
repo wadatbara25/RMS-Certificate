@@ -149,7 +149,7 @@ function divition($dev){
         <th></th>
     </tr>
     <tr align="left">
-         <td><h6>Student No: <?php echo $Certificate['AdmissionFormNo']; ?></h6></td>
+         <td><b style="">Student No: <?php echo $Certificate['AdmissionFormNo']; ?></b></td>
          <td clospan="2"></td>
         
      </tr>

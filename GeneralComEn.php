@@ -162,7 +162,7 @@ $Class = $isHonors ? 'Class' : 'Degree';
         <img 
             src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
             alt="Student Photo"
-            style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; display: block;"
+            style="width: 120px; height: 120px; object-fit: contain; border-radius: 10px; border: 0px solid #ccc; display: block;"
         />
     </div>
 <?php endif; ?>

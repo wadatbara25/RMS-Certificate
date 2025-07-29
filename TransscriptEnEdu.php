@@ -1,11 +1,4 @@
 <?php
-// Database connection parameters
-// $serverName = "."; // Replace with your server name
-// $connectionOptions = [
-//     "Database" => "RRS_Diploma", // Replace with your database name
-//     "Uid" => "sa", // Replace with your database username
-//     "PWD" => "123" // Replace with your database password
-// ];
 session_start();
 include 'db_connection.php';
 
@@ -13,323 +6,188 @@ if (!isset($_SESSION["username"])) {
     header("Location: login.php");
     exit();
 }
+
 $selectedServer = $_SESSION["server"];
-$id = isset($_GET["id"]) ? $_GET["id"] : null;
+$id = $_GET["id"] ?? null;
 
-  //Transscript call
-
-  $conn = connectToDatabase($selectedServer);
-  if ($conn === false) {
-      die(print_r(sqlsrv_errors(), true));
-  }
-  
-  // Grade points mapping
-  
-  
-  
-      $sql = "select  * from TranscriptF('$id')    
-      order by SemesterID,SubjectNameEng
-   ";
-      
-   $TRRR = sqlsrv_query($conn, $sql);
-   
-   if ($TRRR === false) {
-       die(print_r(sqlsrv_errors(), true));
-   }
-   
-   // Initialize arrays to hold data by semester and grand total calculation
-   $data = [];
-   
-   while ($row = sqlsrv_fetch_array($TRRR, SQLSRV_FETCH_ASSOC)) {
-          $semester = $row['SemesterID'];
-      $subject = $row['SubjectNameEng'];
-      $hours = $row['SubjectHours'];
-      $grade = $row['SubjectGradeEng'];
-      $gradePointsValue = $row['GradePoint'];
-     
-  
-      if (!isset($data[$semester])) {
-          $data[$semester] = [];
-      }
-  
-      $data[$semester][] = [
-          'Subject' => $subject,
-          'Hours' => $hours,
-          'Grade' => $grade,
-          'GradePoints' => $gradePointsValue,
-         
-      ];
-      //sqlsrv_close($conn);
-  
-  //return $Transe;
-  }
-
-
-
-  if ($id) {
-    $Certificate=getCertificte($selectedServer, $id);
-    $row = getUserById($selectedServer, $id);
-    $Signatures = getAllSignatures($selectedServer, $id);
-    // Check if faculty data exists
-    if ($Certificate === null||$row === null||$Signatures === null) {
-        echo "No Result Found";
-    }
-    $GradDate = $Certificate['GraduationDate']->format('d/m/Y');
-    $AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
-    $DateNow = date("d/m/Y");
-    // Check if user data exists
-   
-    
-} else {
-    die("Invalid user ID");
+if (!$id) {
+    die("Invalid ID");
 }
 
-// Devition
-function divition($dev){
-    switch($dev){
-        case $dev>=3.50:
-            return 'One';
-            break; 
-        case $dev>=3.00:
-                return 'Two- Devition One';
-                break;
-        case $dev>=2.50:
-                    return 'Two- Devition Two';
-                    break; 
-        case $dev<2.50:
-                        return 'Three';
-                        break;
-       
-      
-            }
-        }
-        // General
-function divitionG($devG){
-    switch($devG){
-        case $devG>=3.50:
-            return 'One';
-            break; 
-         case $devG>=2.50:
-                    return 'Two';
-                    break; 
-        case $devG<2.50:
-                        return 'Three';
-                        break;
-       
-      
-            }
-        }
+$conn = connectToDatabase($selectedServer);
+if (!$conn) {
+    die(print_r(sqlsrv_errors(), true));
+}
 
+$sql = "SELECT * FROM TranscriptF(?) ORDER BY SemesterID, SubjectCode";
+$params = [$id];
+$TRRR = sqlsrv_query($conn, $sql, $params);
+if (!$TRRR) {
+    die(print_r(sqlsrv_errors(), true));
+}
 
-//General
+$data = [];
+while ($row = sqlsrv_fetch_array($TRRR, SQLSRV_FETCH_ASSOC)) {
+    $data[$row['SemesterID']][] = $row;
+}
 
-$General='Honours';
-$GG=str_contains($Certificate['DegreeNameEn'],$General);
+$Certificate = getCertificte($selectedServer, $id);
+$row = getUserById($selectedServer, $id);
+$facultyId = $Certificate['FacultyID'] ?? null;
+$Signatures = getAllSignatures($selectedServer, $facultyId);
 
-      if($GG==0){
-        $message=divitionG($Certificate['CGPA']);
-        $Class='Degree';
-      } else
-      {
-        $message=divition($Certificate['CGPA']);
-        $Class='Class';
-      }
+if (!$Certificate || !$row || !$Signatures) {
+    echo "No Result Found";
+    exit();
+}
+
+$GradDate = isset($Certificate['GraduationDate']) ? $Certificate['GraduationDate']->format('Y/m/d') : 'N/A';
+$AddDate = isset($Certificate['AdmissionDate']) ? $Certificate['AdmissionDate']->format('Y/m/d') : 'N/A';
+$DateNow = date("Y/m/d");
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Transcript Results</title>
+    <meta charset="UTF-8">
+    <title>Transcript</title>
     <style>
-       table.T1{
-           border: 0px solid black;
-            padding: 0px;
-            background-color: #ffffff;
-            text-align: center;       
+        body {
+            font-family: "Arial", sans-serif;
+            direction: ltr;
         }
-      table.T2 {
+       table.T1 {
+    width: 90%;
+    margin: auto;
+    background-color: #fff;
+    border: 0;
+    table-layout: auto; /* يسمح للأعمدة بالتوسع تلقائياً */
+}
+table.T1 td,
+table.T1 th {
+    white-space: nowrap; /* يمنع التفاف النص */
+}
+        table.T2 {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 0px;
-            text-align:center;
-            font-size:12px;
-          
-        }
-        table.T2, th.T2,td.T2 {
-            border: 1px solid black;
-            padding: 0px;
+            font-size: 12px;
             text-align: center;
         }
-        table.T2,th.T2{
-           
+        .T2 th, .T2 td {
+            border: 1px solid black;
+            padding: 2px;
         }
-        
-       
         .total-row {
             font-weight: bold;
-            background-color: #e0e0e0;
+            background-color: #f2f2f2;
         }
-
+        .student-photo, .signature {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border: none;
+            filter: brightness(1.1) contrast(1.1);
+        }
         hr.new1 {
-    border-top: 1px dashed red;
-  }
+            border-top: 1px dashed red;
+        }
     </style>
 </head>
 <body>
-
-<table class="T1" border="0" padding="0" border-spacing="0" align="center" width="90%">
-      <tr align="left">
-        <td><img width="100" height="100" src="data:image/jpeg;base64,<?php echo base64_encode($Certificate['Photo'])?>"/> </td>
-        <th></th>
-        <th></th>
+<table class="T1" border="1" cellspacing="0" cellpadding="0">
+    <tr align="left">
+        <td colspan="2"><img class="student-photo" src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" /></td>
+        <td></td>
+        
     </tr>
     <tr align="left">
-         <td><h6>Student No: <?php echo $Certificate['AdmissionFormNo']; ?></h6></td>
-         <td clospan="2"></td>
-        
-     </tr>
-     <tr align="center">
-        <td colspan="3"><b>Faculty of <?php echo $Certificate['FacultyNameEng'];?></b></td>
-   
-     </tr>
-      <tr align="center">
-        <td colspan="3"><b><?php echo $Certificate['DegreeNameEn'];?></b></td>
-   
-     </tr>
-     <tr align="center">
+        <td colspan="2"><b style="font-family:'TimeNews'; font-size:11px;">Student No: <?= $Certificate['AdmissionFormNo'] ?></b></td>
        
-       <td colspan="3"><b>ACADEMIC TRANSCRIPT<hr class="new1"></b></td>
-  
+        <td></td>
     </tr>
-        
-    
-     
-     <tr align="left">
-        <td colspan="2"> <b>Name:<u><?php echo $Certificate['StudentNameEng'];?></u> </b> </td>
-        <td><b> Nationality:<u><?php echo $Certificate['StudentNationalityEng'];?></u> </b> </td>
-        
-        
-    </tr>
-   
+    <tr align="center"><td colspan="3" ><b>Faculty of <?= $Certificate['FacultyNameEng'] ?></b></td></tr>
+    <tr align="center"><td colspan="3" white-space="nowrap"><b><?= $Certificate['DegreeNameEn'] ?></b></td></tr>
+    <tr align="center"><td colspan="3"><b>Academic Transcript<hr class="new1"></b></td></tr>
     <tr align="left">
-        <th colspan="2"><b>Specialization:</b>&nbsp;<u><?php echo $Certificate['DepartmentNameEng'];?></u></th>
-        <th>&nbsp;<u><?php echo $Class.':'.$message;?></u></th>
+       
+        <td colspan="2" style="width: 90%;"><b style="font-family:'TimeNews'; font-size:14px;">Name: <u><?= $Certificate['StudentNameEng'] ?></u></b></td>
+         <td><b style="font-family:'TimeNews'; font-size:14px;">Nationality: <u><?= $Certificate['StudentNationalityEng'] ?></u></b></td>
     </tr>
-   
-     <tr align="left">
-        <th colspan="2"><b>Addmission Date:</b>&nbsp;<u><?php echo $AddDate;?></u></th>
-        <th><b>Date of Award :</b>&nbsp;<u><?php echo $GradDate;?></u></th>
+    <tr align="left">
+        <th colspan="2"><b style="font-family:'TimeNews'; font-size:14px;">Admission Date: <u><?= $AddDate ?></u></b></th>
+        <th><b style="font-family:'TimeNews'; font-size:14px;">Date of Award: <u><?= $GradDate ?></u></b></th>
     </tr>
-    
-     <tr align="left">
+    <tr align="left">
         <th colspan="2"></th>
-         <th> <b>Total Credit Hours:</b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?></u></th>
-      
+        <th><b style="font-family:'TimeNews'; font-size:14px;">Total Credit Hours: <u><?= $Certificate['C_Hours'] ?></u></b></th>
+        
     </tr>
-   
-    <tr>
-        <th colspan="3">
-
-        
-
-        
-       
-
-
-
-<div align="center">
-    <?php    $TotalHs=0;
-            $TotalGs=0;
-             foreach ($data as $semester => $entries): ?>
-             
-        <table class="T2">
-        <tr>
-                <td colspan="3" align="left" style="border:none;">Semester <?php echo htmlspecialchars($semester); ?>:</td>
-               
-                
-            </tr>
-            <tr bgcolor="f2f2f2">
-                <th width="70%">Subject</th>
-                <th width="5%" >Hours</th>
-                <th width="5%">Grade</th>
-                
-            </tr>
+    <tr><th colspan="3">
+        <div align="center">
             <?php
-            $totalHours = 0;
-            $gradePointsValue = 0;
-          
-            $TotalHs += $totalHours;
-            $TotalGs += $gradePointsValue;
-            foreach ($entries as $entry):
-                $totalHours += $entry['Hours'];
-                $gradePointsValue += $entry['GradePoints'];
-                
-                
+            $TotalHs = 0;
+            $TotalGs = 0;
+            foreach ($data as $semester => $subjects) {
             ?>
-                <tr>
-                    <td align="left">&nbsp;&nbsp;<?php echo htmlspecialchars($entry['Subject']); ?></td>
-                    <td align="center"><?php echo htmlspecialchars($entry['Hours']); ?></td>
-                    <td align="center"><?php echo htmlspecialchars($entry['Grade']); ?></td>
-                   
+            <table class="T2">
+                <tr><td colspan="3" align="left" style="border:none;">Semester <?= $semester ?>:</td></tr>
+                <tr bgcolor="#f2f2f2">
+                    <th width="70%">Subject</th>
+                    <th width="5%">Hours</th>
+                    <th width="15%">Grade</th>
                 </tr>
-            <?php endforeach; 
-            $TotalHs += $totalHours ;
-            $TotalGs += $gradePointsValue;
+                <?php
+                $totalHours = 0;
+                $gradePoints = 0;
+                foreach ($subjects as $subject) {
+                    $totalHours += $subject['SubjectHours'];
+                    $gradePoints += $subject['GradePoint'];
+                ?>
+                <tr>
+                    <td align="left"><?= $subject['SubjectNameEng'] ?></td>
+                    <td><?= $subject['SubjectHours'] ?></td>
+                    <td><?= $subject['SubjectGradeEng'] ?></td>
+                </tr>
+                <?php } ?>
+                <tr class="total-row">
+                    <td>GPA = <?= number_format($gradePoints / $totalHours, 2) ?></td>
+                    <td><?= $totalHours ?></td>
+                    <td>CGPA = <?= number_format(($TotalGs + $gradePoints) / ($TotalHs + $totalHours), 2) ?></td>
+                </tr>
+            </table>
+            <br>
+            <?php
+            $TotalHs += $totalHours;
+            $TotalGs += $gradePoints;
+            }
             ?>
-            <!-- Total Rows -->
-            <tr class="total-row">
-                <td>GPA=<?php echo htmlspecialchars(number_format($gradePointsValue/$totalHours,2)); ?></td>
-                <td><?php echo htmlspecialchars($totalHours); ?></td>
-                <td>CGPA=<?php echo htmlspecialchars(number_format($TotalGs/$TotalHs,2)); ?></td>
-
-                
-              
-            </tr>
-        </table>
-    <?php endforeach; ?>
-            </div>
-
-            </th>
-     
-     </tr>
-     <tr align="left" >
-     <th colspan="3"><b>Grades are Converted into Points as follows:</b> <br><center>A=4:00, B+=3.50, B=3.00, C+=2.50, C=2.00, F=0.00 Points.</center></th>
-     </tr>
-     
-     <tr align="center">
-        <td><img  width="100" height="100" src="img/<?php echo $Signatures['Imgregg'];?>"></td>
-        
-         <td colspan="2"><img  width="100" height="100" src="img/<?php echo$Signatures['ImgDeann'];?>"></td>
-     </tr>
-     <tr align="center">
-         <th nowrap> <b><i><?php echo $Signatures['FacultyRegistrar_NameE'];?></i></b></th>
-         
-         <th colspan="2"><b><i><?php echo $Signatures['FacultyDean_NameE'];?></i></b></th>
-     </tr>
-     <tr align="center">
-         <th><b>Registrar</b></th>
-         
-         <th colspan="2"><b>Dean of Faculty</b></th>
-     </tr>
+        </div>
+    </th></tr>
+    <tr align="center">
+        <th colspan="3"><b>Grades are converted into points as follows:</b><br>
+            <center>A = 4.00, B+ = 3.50, B = 3.00, C+ = 2.50, C = 2.00, F = 0.00</center>
+        </th>
+    </tr>
+    <tr align="center">
+            <td><img class="signature" src="img/<?= $Signatures['Imgregg'] ?>"></td>
     
-       <tr>
-         <th colspan="3"><br></th>
+    <td colspan="2"><img class="signature" src="img/<?= $Signatures['ImgDeann'] ?>"></td>
+    </tr>
+    <tr align="center">
         
-     </tr>
-     <tr align="center">
-      
-         <th colspan="3"><br><br><br><br><b><i><?php echo $Signatures['AcademicAffairsDean_NameE'];?></i></b></th>
-      
-     </tr>
-     <tr align="center">
-     
-         <th colspan="3"><h5>Secretary of Academic Affairs</h5></th>
-        
-     </tr>
-  
- </table>
-    </body>
+        <th><i><?= $Signatures['FacultyRegistrar_NameE'] ?></i></th>
+        <th colspan="2"><i><?= $Signatures['FacultyDean_NameE'] ?></i></th>
+    </tr>
+    <tr align="center">
+        <th colspan="2">Dean of Faculty</th>
+        <th>Faculty Registrar</th>
+    </tr>
+    <tr><th colspan="3"><br></th></tr>
+    <tr align="center">
+        <th colspan="3"><br><br><br><i><?= $Signatures['AcademicAffairsDean_NameE'] ?></i></th>
+    </tr>
+    <tr align="center">
+        <th colspan="3">Secretary of Academic Affairs</th>
+    </tr>
+</table>
+</body>
 </html>
-<?php
-// Close the connection
-//sqlsrv_close($conn);
-?>
