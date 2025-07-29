@@ -185,41 +185,56 @@ function getsm($smid) {
 // Faculty Page Routers
 // ==========================
 
-function faclitylink($lnk) {
-    return match($lnk) {
-         'FMAS' => 'GeneralNursEn.php',
-        'FEDU', 'FERD'=> 'GeneralEduEn.php',
-        'FCS' => 'GeneralComEn.php',
-        'FMED', 'FVM' => 'GeneralEn.php',
-        default => 'GeneralEn.php'
-    };
+function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'general'): string {
+    // قاعدة روابط الملفات
+    $files = [
+        'general' => [
+            'en' => [
+                'FMAS' => 'GeneralNursEn.php',
+                'FEDU' => 'GeneralEduEn.php',
+                'FERD' => 'GeneralEduEn.php',
+                'FCS'  => 'GeneralComEn.php',
+                'FMED' => 'GeneralEn.php',
+                'FVM'  => 'GeneralEn.php',
+                'default' => 'GeneralEn.php',
+            ],
+            'ar' => [
+                'FMAS' => 'GeneralNursAr.php',
+                'FEDU' => 'GeneralEduAr.php',
+                'FERD' => 'GeneralEduAr.php',
+                'FCS'  => 'GeneralComAr.php',
+                'FMED' => 'GeneralAr.php',
+                'FVM'  => 'GeneralAr.php',
+                'default' => 'GeneralAr.php',
+            ],
+        ],
+        'transcript' => [
+            'en' => [
+                'FMAS' => 'TransscriptEnNurs.php',
+                'FEDU' => 'TransscriptComEn.php',
+                'FERD' => 'TransscriptComEn.php',
+                'FCS'  => 'TransscriptComEn.php',
+                'FMED' => 'TransscriptEn.php',
+                'FVM'  => 'TransscriptEn.php',
+                'default' => 'TransscriptEn.php',
+            ],
+            'ar' => [
+                'FMAS' => 'TransscriptComAr.php',
+                'FEDU' => 'TransscriptComAr.php',
+                'FERD' => 'TransscriptComAr.php',
+                'FCS'  => 'TransscriptComAr.php',
+                'FMED' => 'TransscriptComAr.php',
+                'FVM'  => 'TransscriptComAr.php',
+                'default' => 'TransscriptComAr.php',
+            ],
+        ]
+    ];
+
+    $lnk = strtoupper($lnk); // توحيد الحروف
+    $lang = strtolower($lang);
+    $type = strtolower($type);
+
+    return $files[$type][$lang][$lnk] ?? $files[$type][$lang]['default'];
 }
 
-function faclitylinkAr($lnk) {
-    return match($lnk) {
-        'FMAS' => 'GeneralNursAr.php',
-        'FEDU', 'FERD'=> 'GeneralEduAr.php',
-        'FCS' => 'GeneralComAr.php',
-        'FMED', 'FVM' => 'GeneralAr.php',
-        default => 'GeneralAr.php'
-    };
-}
-
-function faclitylinkT($lnk) {
-    return match($lnk) {
-        'FMAS' => 'TransscriptEnNurs.php',
-        'FEDU', 'FERD', 'FCS' => 'TransscriptEnEdu.php',
-        'FMED', 'FVM' => 'TransscriptEn.php',
-        default => 'TransscriptEn.php'
-    };
-}
-
-function faclitylinkTAr($lnk) {
-    return match($lnk) {
-        'FMAS' => 'TransscriptComAr.php',
-        'FEDU', 'FERD', 'FCS' => 'TransscriptComAr.php',
-        'FMED', 'FVM' => 'TransscriptComAr.php',
-        default => 'TransscriptComAr.php'
-    };
-}
 ?>

@@ -2,12 +2,13 @@
 session_start();
 require_once 'db_connection.php';
 
-// دالة مساعدة لتأمين النصوص
+// دالة تأمين النصوص
 function e($value) {
     return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
 }
 
-// تحقق من تسجيل الدخول
+
+// التحقق من تسجيل الدخول
 if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
     header("Location: index.html");
     exit();
@@ -16,7 +17,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 $selectedServer = $_SESSION['server'] ?? '1';
 $username = $_SESSION['username'] ?? '';
 
-// جلب بيانات المستخدم (لأغراض عرض الكلية مثلاً)
+// جلب بيانات الكلية
 $user = getUserByUsername($selectedServer, $username);
 $facultyName = 'غير معروف';
 $facultyID = '';
@@ -28,7 +29,7 @@ if (!empty($user['FacultyID'])) {
     }
 }
 
-// معالجة البحث أو عرض جميع الطلاب
+// البحث عن الطلاب
 $searchQuery = $_POST["search_query"] ?? "";
 $users = ($_SERVER["REQUEST_METHOD"] === "POST" && !empty($searchQuery))
     ? searchUsers($selectedServer, $searchQuery)
@@ -38,7 +39,6 @@ $errorMessage = '';
 if (empty($users)) {
     $errorMessage = "لا توجد نتائج لعرضها.";
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -101,9 +101,6 @@ if (empty($users)) {
             padding: 40px 30px;
             min-height: 100vh;
         }
-        h1, h3 {
-            color: #34495e;
-        }
         .table-responsive {
             margin-top: 20px;
             background: white;
@@ -111,8 +108,6 @@ if (empty($users)) {
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-
-        /* ستايل النافذة المنبثقة */
         .popup {
             display: flex;
             justify-content: center;
@@ -153,19 +148,23 @@ if (empty($users)) {
 <main class="main-content" role="main">
     <h3>قائمة طلاب كلية: <?= e($facultyName) ?></h3>
 
-
     <div class="table-responsive">
-        <table id="studentsTable" class="table table-striped table-bordered">
-            <thead class="table-dark">
+        <table id="studentsTable" class="table table-striped table-bordered" >
+            <thead class="table-dark" >
+                <tr >
+                    <th rowspan="2" class="text-center">الرقم الجامعي</th>
+                    <th rowspan="2" class="text-center">الاسم</th>
+                    <th colspan="2" class="text-center">العامة</th>
+                    <th colspan="2" class="text-center">التفاصيل</th>
+                    <th colspan="2" class="text-center">السجل</th>
+                </tr>
                 <tr>
-                    <th>الرقم الجامعي</th>
-                    <th>الاسم</th>
-                    <th>عامة</th>
-                    <th>عامة</th>
-                    <th>تفاصيل</th>
-                    <th>تفاصيل</th>
-                    <th>السجل</th>
-                    <th>السجل</th>
+                    <th>عربي</th>
+                    <th>إنجليزي</th>
+                    <th>عربي</th>
+                    <th>إنجليزي</th>
+                    <th>عربي</th>
+                    <th>إنجليزي</th>
                 </tr>
             </thead>
             <tbody>
@@ -173,12 +172,12 @@ if (empty($users)) {
                     <tr>
                         <td><?= e($user["AdmissionFormNo"] ?? '') ?></td>
                         <td><?= e($user["StudentName"] ?? '') ?></td>
-                        <td><a class="btn btn-success btn-sm" href="<?= faclitylinkAr($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربية</a></td>
-                        <td><a class="btn btn-info btn-sm" href="<?= faclitylink($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزية</a></td>
-                        <td><a class="btn btn-success btn-sm" href="<?= faclitylinkTAr($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربي</a></td>
-                        <td><a class="btn btn-info btn-sm" href="<?= faclitylinkT($facultyID) ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزي</a></td>
+                        <td><a class="btn btn-success btn-sm" href="<?= getFacilityLink($facultyID, 'ar', 'general') ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربية</a></td>
+                        <td><a class="btn btn-info btn-sm" href="<?= getFacilityLink($facultyID, 'en', 'general') ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزية</a></td>
+                        <td><a class="btn btn-success btn-sm" href="<?= getFacilityLink($facultyID, 'ar', 'transcript') ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربي</a></td>
+                        <td><a class="btn btn-info btn-sm" href="<?= getFacilityLink($facultyID, 'en', 'transcript') ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزي</a></td>
                         <td><a class="btn btn-info btn-sm" href="AcademicAr.php?id=<?= urlencode($user["StudentID"] ?? '') ?>">ع</a></td>
-                        <td><a class="btn btn-info btn-sm" href="AcademicEn.php?id=<?= urlencode($user["StudentID"] ?? '')?>">En</a></td>
+                        <td><a class="btn btn-info btn-sm" href="AcademicEn.php?id=<?= urlencode($user["StudentID"] ?? '') ?>">En</a></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
@@ -201,7 +200,6 @@ if (empty($users)) {
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
-
 <script>
 $(document).ready(function () {
     $('#studentsTable').DataTable({
@@ -211,6 +209,5 @@ $(document).ready(function () {
     });
 });
 </script>
-
 </body>
 </html>
