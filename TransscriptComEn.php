@@ -52,7 +52,9 @@ $DateNow = date("Y/m/d");
     <title>Transcript</title>
     <style>
         body {
-            font-family: "Arial", sans-serif;
+            font-family: "TimeNews", sans-serif;
+            font-size: 12px;
+            margin: 0;
             direction: ltr;
         }
        table.T1 {
@@ -74,7 +76,7 @@ table.T1 th {
         }
         .T2 th, .T2 td {
             border: 1px solid black;
-            padding: 2px;
+            padding: 0px;
         }
         .total-row {
             font-weight: bold;
@@ -93,7 +95,7 @@ table.T1 th {
     </style>
 </head>
 <body>
-<table class="T1" border="1" cellspacing="0" cellpadding="0">
+<table class="T1" border="0" cellspacing="0" cellpadding="0">
     <tr align="left">
         <td colspan="2"><img class="student-photo" src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" /></td>
         <td></td>
@@ -163,9 +165,9 @@ table.T1 th {
         </div>
     </th></tr>
     <tr align="center">
-        <th colspan="3"><b>Grades are converted into points as follows:</b><br>
+        <th colspan="3"><b style="font-family:'TimeNews'; font-size:12px;">Grades are converted into points as follows:<br>
             <center>A = 4.00, B+ = 3.50, B = 3.00, C+ = 2.50, C = 2.00, F = 0.00</center>
-        </th>
+        </b></th>
     </tr>
     <tr align="center">
             <td><img class="signature" src="img/<?= $Signatures['Imgregg'] ?>"></td>
@@ -174,8 +176,8 @@ table.T1 th {
     </tr>
     <tr align="center">
         
-        <th><i><?= $Signatures['FacultyRegistrar_NameE'] ?></i></th>
-        <th colspan="2"><i><?= $Signatures['FacultyDean_NameE'] ?></i></th>
+        <th><b style="font-family:'TimeNews'; font-size:14px;"><?= $Signatures['FacultyRegistrar_NameE'] ?></b></th>
+        <th colspan="2"><b style="font-family:'TimeNews'; font-size:14px;"><?= $Signatures['FacultyDean_NameE'] ?></b></th>
     </tr>
     <tr align="center">
         <th colspan="2">Dean of Faculty</th>
@@ -183,7 +185,7 @@ table.T1 th {
     </tr>
     <tr><th colspan="3"><br></th></tr>
     <tr align="center">
-        <th colspan="3"><br><br><br><i><?= $Signatures['AcademicAffairsDean_NameE'] ?></i></th>
+        <th colspan="3"><br><br><br><b style="font-family:'TimeNews'; font-size:14px;"><?= $Signatures['AcademicAffairsDean_NameE'] ?></b></th>
     </tr>
     <tr align="center">
         <th colspan="3">Secretary of Academic Affairs</th>
