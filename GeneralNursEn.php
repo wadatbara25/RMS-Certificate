@@ -186,7 +186,7 @@ $Class = $isHonors ? 'Class' : 'Degree';
 <table align="left" style="font-size:16px;" dir="ltr">
     <tr><td><b>The Degree of:</b></td><td><u><?= htmlspecialchars($Certificate['DegreeNameEn'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td></tr>
     <tr><td><b>Faculty of:</b></td><td><u><?= htmlspecialchars($Certificate['FacultyNameEng'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td></tr>
-    <tr><td><b>Specialization:</b></td><td><u><?= htmlspecialchars($Certificate['DepartmentNameEng'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td></tr>
+    <tr><td><b>Degree:</b></td><td><u><?= htmlspecialchars($message) ?></u></td></tr>
     <tr><td><b>Date of Award:</b></td><td><u><?= $GradDate ?></u></td></tr>
     <tr><td><b>Date of Issue:</b></td><td><u><?= $DateNow ?></u></td></tr>
 </table>
