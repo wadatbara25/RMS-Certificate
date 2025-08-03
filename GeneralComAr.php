@@ -2,6 +2,37 @@
 session_start();
 include 'db_connection.php';
 
+// معالجة رفع الصورة
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
+    $studentId = $_GET['id'] ?? null;
+    if (!$studentId) {
+        renderErrorPage("لا يمكن رفع الصورة بدون معرف الطالب.");
+    }
+
+    $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $studentId);
+    $targetDir = __DIR__ . "/saved_images";
+    $targetFile = $targetDir . "/$safeId.jpg";
+
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    $fileType = $_FILES["student_photo"]["type"];
+
+    if (in_array($fileType, $allowedTypes)) {
+        if (move_uploaded_file($_FILES["student_photo"]["tmp_name"], $targetFile)) {
+            header("Location: " . $_SERVER['REQUEST_URI']); // إعادة تحميل الصفحة
+            exit();
+        } else {
+            renderErrorPage("حدث خطأ أثناء رفع الصورة.");
+        }
+    } else {
+        renderErrorPage("الصيغة غير مدعومة. يرجى رفع صورة بصيغة JPG أو PNG.");
+    }
+}
+
+// التحقق من تسجيل الدخول
 if (empty($_SESSION["username"])) {
     header("Location: login.php");
     exit();
@@ -135,40 +166,57 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         }
 
         table img {
-    width: 100px;
-    height: 100px;
-    object-fit: contain; /* يحافظ على نسبة الأبعاد بدون تمديد */
-    image-rendering: crisp-edges;
-    -webkit-image-rendering: crisp-edges;
-    image-rendering: pixelated;
-    border: none; /* إزالة أي إطار */
-    display: block; /* لمنع أي مسافات تحت الصورة */
-    margin: 0 auto; /* لو تريد الصور في الوسط داخل الخلايا */
-    filter: brightness(1.1) contrast(1.1);
-        
-}
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            image-rendering: crisp-edges;
+            border: none;
+            display: block;
+            margin: 0 auto;
+            filter: brightness(1.1) contrast(1.1);
+        }
 
+        form input[type="file"],
+        form input[type="submit"] {
+            margin-top: 5px;
+            font-size: 14px;
+            font-family: 'Almarai', sans-serif;
+        }
     </style>
     <script>
-    function printCertificate() {
-        const btn = document.getElementById('printBtn');
-        btn.style.display = 'none';
-        window.print();
-        btn.style.display = 'block';
-    }
+        function printCertificate() {
+            const btn = document.getElementById('printBtn');
+            btn.style.display = 'none';
+            window.print();
+            btn.style.display = 'block';
+        }
     </script>
 </head>
 <body>
 
 <button id="printBtn" onclick="printCertificate()">🖨️ طباعة الشهادة</button>
 
-<?php if (!empty($Certificate['Photo'])): ?>
+<?php
+$studentId = $Certificate['StudentID'] ?? $id;
+$safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $studentId);
+$imagePath = "saved_images/$safeId.jpg";
+?>
+
+<?php if (file_exists($imagePath)): ?>
     <div style="width: 120px; height: 120px; margin-bottom: 10px;">
         <img class="student-photo"
             style="width: 100%; height: 100%; object-fit: contain; border: 0px solid #000; border-radius: 2px;"
-            src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
+            src="<?= htmlspecialchars($imagePath) ?>" 
             alt="صورة الطالب"
         />
+    </div>
+<?php else: ?>
+    <div style="width: 120px; margin-bottom: 10px; text-align: center;">
+        <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
+        <form action="" method="post" enctype="multipart/form-data" style="margin-top: 10px;">
+            <input type="file" name="student_photo" accept="image/*" required>
+            <input type="submit" name="upload_photo" value="رفع صورة">
+        </form>
     </div>
 <?php endif; ?>
 
@@ -187,43 +235,39 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         <?= htmlspecialchars($Certificate['StudentName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
         - الجنسية:
         <?= htmlspecialchars($Certificate['StudentNationality'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
-</b>
-    
-
+    </b>
 </div>
-<table  align="right" style="font-family:'Droid Arabic Kufi'; font-size:16px" dir="rtl" >
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> </td><td><div align="center"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td></tr>
 
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">الكليـة: </td><td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></td></tr>
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"><?= htmlspecialchars($Class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')?>:</td><td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></b></td></tr>
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"> تاريخ  منح الدرجة:</td><td><u><?= $GradDate ?></u></b></td></tr>
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ  اصدار الشهادة:</td><td><u><?= $DateNow ?> </u></b></td></tr>
+<table align="right" style="font-family:'Droid Arabic Kufi'; font-size:16px" dir="rtl">
+    <tr>
+        <td></td>
+        <td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td>
+    </tr>
+    <tr><td>الكليـة:</td><td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td></tr>
+    <tr><td><?= htmlspecialchars($Class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>:</td><td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td></tr>
+    <tr><td>تاريخ منح الدرجة:</td><td><u><?= $GradDate ?></u></td></tr>
+    <tr><td>تاريخ إصدار الشهادة:</td><td><u><?= $DateNow ?></u></td></tr>
 </table>
+
 <table width="100%">
     <tr align="center">
-        <td colspan="2">
-            <img width="100" height="100" src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png') ?>" alt="توقيع عميد الكلية">
-        </td>
-        <td>
-            <img width="100" height="100" src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png') ?>" alt="توقيع مسجل الكلية">
-        </td>
+        <td colspan="2"><img src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png') ?>" alt="توقيع عميد الكلية"></td>
+        <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png') ?>" alt="توقيع مسجل الكلية"></td>
     </tr>
     <tr align="center">
-        <th colspan="2"><b style="font-family:'Amiri'; font-size:16px;"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></th>
-        <th nowrap><b style="font-family:'Amiri'; font-size:16px;"><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></th>
+        <th colspan="2"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
+        <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
     </tr>
     <tr align="center">
-        <th colspan="2"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">عميد الكلية</b></th>
-        <th><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">مسجل الكلية</b></th>
+        <th colspan="2">عميد الكلية</th>
+        <th>مسجل الكلية</th>
     </tr>
-     <tr align="center">
-        <td colspan="3"><b><br><br><br> </b></td>   
-    </tr>  
+    <tr align="center"><td colspan="3"><br><br><br></td></tr>
     <tr align="center">
-        <th colspan="3"><b style="font-family:'Amiri'; font-size:16px;"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></th>
+        <th colspan="3"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
     </tr>
     <tr align="center">
-        <th colspan="3"><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">أمين الشؤون العلمية</b></th>
+        <th colspan="3">أمين الشؤون العلمية</th>
     </tr>
 </table>
 
