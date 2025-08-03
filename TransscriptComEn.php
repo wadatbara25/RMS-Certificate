@@ -97,7 +97,18 @@ table.T1 th {
 <body>
 <table class="T1" border="0" cellspacing="0" cellpadding="0">
     <tr align="left">
-        <td colspan="2"><img class="student-photo" src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" /></td>
+<?php
+$safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
+$imagePath = "saved_images/$safeId.jpg";
+?>
+
+<td colspan="2">
+    <?php if (file_exists($imagePath)): ?>
+        <img class="student-photo" src="<?= htmlspecialchars($imagePath) ?>" style="width: 100px; height: 100px; object-fit: contain; border-radius: 6px;" alt="صورة الطالب" />
+    <?php else: ?>
+        <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
+    <?php endif; ?>
+</td>
         <td></td>
         
     </tr>

@@ -157,15 +157,23 @@ $Class = $isHonors ? 'Class' : 'Degree';
 
 <button id="printBtn" onclick="printCertificate()">🖨️ Print Certificate</button>
 
-<?php if (!empty($Certificate['Photo'])): ?>
-    <div style="width: 120px; height: 120px; margin-bottom: 10px;" align="left">
+<?php
+$safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
+$imagePath = "saved_images/$safeId.jpg";
+?>
+
+<div style="width: 120px; height: 120px; margin-bottom: 10px;" align="left">
+    <?php if (file_exists($imagePath)): ?>
         <img 
-            src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
-            alt="Student Photo"
+            src="<?= htmlspecialchars($imagePath) ?>" 
+            alt="صورة الطالب"
             style="width: 120px; height: 120px; object-fit: contain; border-radius: 10px; border: 0px solid #ccc; display: block;"
         />
-    </div>
-<?php endif; ?>
+    <?php else: ?>
+        <div style="text-align: center; font-size: 14px; color: gray;">📷 لا توجد صورة</div>
+    <?php endif; ?>
+</div>
+
 
 <h5>Student No: <?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></h5>
 

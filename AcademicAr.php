@@ -91,9 +91,19 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 <body>
 <table class="T1" align="center" width="90%">
     <tr align="left">
-        <td>
-            <img class="student-photo" src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" alt="صورة الطالب" />
-        </td>
+       <?php
+$safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
+$imagePath = "saved_images/$safeId.jpg";
+?>
+
+<td colspan="2">
+    <?php if (file_exists($imagePath)): ?>
+        <img class="student-photo" src="<?= htmlspecialchars($imagePath) ?>" style="width: 100px; height: 100px; object-fit: contain; border-radius: 6px;" alt="صورة الطالب" />
+    <?php else: ?>
+        <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
+    <?php endif; ?>
+</td>
+
         <th></th><th></th>
     </tr>
     <tr align="left">
