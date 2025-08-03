@@ -152,7 +152,7 @@ if (empty($users)) {
         <table id="studentsTable" class="table table-striped table-bordered" >
             <thead class="table-dark" >
                 <tr >
-                    <th rowspan="2" class="text-center">الرقم الجامعي</th>
+                    <th rowspan="2" class="text-center">رقم الطالب</th>
                     <th rowspan="2" class="text-center">الاسم</th>
                     <th colspan="2" class="text-center">العامة</th>
                     <th colspan="2" class="text-center">التفاصيل</th>
@@ -170,7 +170,7 @@ if (empty($users)) {
             <tbody>
                 <?php foreach ($users as $user): ?>
                     <tr>
-                        <td><?= e($user["AdmissionFormNo"] ?? '') ?></td>
+                        <td><?= e($user["StudentID"] ?? '') ?></td>
                         <td><?= e($user["StudentName"] ?? '') ?></td>
                         <td><a class="btn btn-success btn-sm" href="<?= getFacilityLink($facultyID, 'ar', 'general') ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">عربية</a></td>
                         <td><a class="btn btn-info btn-sm" href="<?= getFacilityLink($facultyID, 'en', 'general') ?>?id=<?= urlencode($user["StudentID"] ?? '') ?>">إنجليزية</a></td>
