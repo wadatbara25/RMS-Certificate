@@ -2,7 +2,7 @@
 session_start();
 include 'db_connection.php';
 
-// معالجة رفع الصورة
+// معالجة رفع الصورة وتحسينها
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
     $studentId = $_GET['id'] ?? null;
     if (!$studentId) {
@@ -17,22 +17,54 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
         mkdir($targetDir, 0777, true);
     }
 
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-    $fileType = $_FILES["student_photo"]["type"];
+    $imageTmp = $_FILES["student_photo"]["tmp_name"];
+    $fileType = mime_content_type($imageTmp);
+    $allowedTypes = ['image/jpeg', 'image/png'];
 
-    if (in_array($fileType, $allowedTypes)) {
-        if (move_uploaded_file($_FILES["student_photo"]["tmp_name"], $targetFile)) {
-            header("Location: " . $_SERVER['REQUEST_URI']); // إعادة تحميل الصفحة
-            exit();
-        } else {
-            renderErrorPage("حدث خطأ أثناء رفع الصورة.");
-        }
-    } else {
-        renderErrorPage("الصيغة غير مدعومة. يرجى رفع صورة بصيغة JPG أو PNG.");
+    if (!in_array($fileType, $allowedTypes)) {
+        renderErrorPage("⚠️ الصيغة غير مدعومة. يُرجى رفع صورة بصيغة JPG أو PNG.");
     }
+
+    // تحميل الصورة الأصلية
+    $srcImage = null;
+    if ($fileType === 'image/jpeg') {
+        $srcImage = @imagecreatefromjpeg($imageTmp);
+    } elseif ($fileType === 'image/png') {
+        $srcImage = @imagecreatefrompng($imageTmp);
+    }
+
+    if (!$srcImage) {
+        renderErrorPage("⚠️ تعذر قراءة الصورة المرفوعة.");
+    }
+
+    $srcWidth = imagesx($srcImage);
+    $srcHeight = imagesy($srcImage);
+    $targetSize = 300;
+
+    $scale = min($targetSize / $srcWidth, $targetSize / $srcHeight);
+    $newWidth = (int)($srcWidth * $scale);
+    $newHeight = (int)($srcHeight * $scale);
+    $xOffset = (int)(($targetSize - $newWidth) / 2);
+    $yOffset = (int)(($targetSize - $newHeight) / 2);
+
+    $resizedImage = imagecreatetruecolor($targetSize, $targetSize);
+    $white = imagecolorallocate($resizedImage, 255, 255, 255);
+    imagefill($resizedImage, 0, 0, $white);
+
+    imagecopyresampled($resizedImage, $srcImage, $xOffset, $yOffset, 0, 0, $newWidth, $newHeight, $srcWidth, $srcHeight);
+
+    if (!imagejpeg($resizedImage, $targetFile, 85)) {
+        renderErrorPage("⚠️ فشل حفظ الصورة بعد التحجيم والتحسين.");
+    }
+
+    imagedestroy($srcImage);
+    imagedestroy($resizedImage);
+
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
 }
 
-// التحقق من تسجيل الدخول
+// تحقق من تسجيل الدخول
 if (empty($_SESSION["username"])) {
     header("Location: login.php");
     exit();
@@ -49,26 +81,9 @@ function renderErrorPage($message) {
         <meta charset="UTF-8">
         <title>خطأ</title>
         <style>
-            body {
-                font-family: "Almarai", sans-serif;
-                background-color: #f9f9f9;
-                color: #c00;
-                text-align: center;
-                direction: rtl;
-                padding: 100px 20px;
-            }
-            .error-box {
-                display: inline-block;
-                background: #ffeaea;
-                border: 2px solid #f99;
-                padding: 20px 40px;
-                border-radius: 10px;
-                font-size: 20px;
-            }
-            a {
-                color: blue;
-                text-decoration: none;
-            }
+            body { font-family: "Almarai", sans-serif; background-color: #f9f9f9; color: #c00; text-align: center; direction: rtl; padding: 100px 20px; }
+            .error-box { display: inline-block; background: #ffeaea; border: 2px solid #f99; padding: 20px 40px; border-radius: 10px; font-size: 20px; }
+            a { color: blue; text-decoration: none; }
         </style>
     </head>
     <body>
@@ -156,21 +171,15 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
             border-radius: 6px;
             cursor: pointer;
             font-family: 'Almarai', sans-serif;
-            transition: background-color 0.3s ease;
         }
-        #printBtn:hover {
-            background-color: #0056b3;
-        }
-        @media print {
-            #printBtn { display: none !important; }
-        }
+        #printBtn:hover { background-color: #0056b3; }
+        @media print { #printBtn { display: none !important; } }
 
         table img {
             width: 100px;
             height: 100px;
             object-fit: contain;
             image-rendering: crisp-edges;
-            border: none;
             display: block;
             margin: 0 auto;
             filter: brightness(1.1) contrast(1.1);
@@ -180,7 +189,6 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         form input[type="submit"] {
             margin-top: 5px;
             font-size: 14px;
-            font-family: 'Almarai', sans-serif;
         }
     </style>
     <script>
@@ -204,16 +212,13 @@ $imagePath = "saved_images/$safeId.jpg";
 
 <?php if (file_exists($imagePath)): ?>
     <div style="width: 120px; height: 120px; margin-bottom: 10px;">
-        <img class="student-photo"
-            style="width: 100%; height: 100%; object-fit: contain; border: 0px solid #000; border-radius: 2px;"
-            src="<?= htmlspecialchars($imagePath) ?>" 
-            alt="صورة الطالب"
-        />
+        <img  src="<?= htmlspecialchars($imagePath) ?>" class="student-photo"
+            style="width: 100%; height: 100%; object-fit: contain; border: 0px solid #000; border-radius: 2px;"  alt="صورة الطالب" />
     </div>
 <?php else: ?>
     <div style="width: 120px; margin-bottom: 10px; text-align: center;">
         <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
-        <form action="" method="post" enctype="multipart/form-data" style="margin-top: 10px;">
+        <form action="" method="post" enctype="multipart/form-data">
             <input type="file" name="student_photo" accept="image/*" required>
             <input type="submit" name="upload_photo" value="رفع صورة">
         </form>
@@ -222,53 +227,38 @@ $imagePath = "saved_images/$safeId.jpg";
 
 <h5><?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>:الرقم الجامعي</h5>
 
-<div align="center">
-    <b style="font-family:'Droid Arabic Kufi'; font-size:24px;">شهـادة </b>
-</div>
-
-<div align="right">
-    <b style="font-family: 'Amiri'; font-size:28px;">: نشهد بأن مجلس الأساتذة قد منح</b>
-</div>
-
+<div align="center"><b style="font-family:'Droid Arabic Kufi'; font-size:24px;">شهـادة</b></div>
+<div align="right"><b style="font-family: 'Amiri'; font-size:28px;">: نشهد بأن مجلس الأساتذة قد منح</b></div>
 <div align="right">
     <b style="font-family:'Droid Arabic Kufi'; font-size:16px;">
         <?= htmlspecialchars($Certificate['StudentName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
-        - الجنسية:
-        <?= htmlspecialchars($Certificate['StudentNationality'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
+        - الجنسية: <?= htmlspecialchars($Certificate['StudentNationality'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>
     </b>
 </div>
 
 <table align="right" style="font-family:'Droid Arabic Kufi'; font-size:16px" dir="rtl">
-    <tr>
-        <td></td>
-        <td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td>
-    </tr>
-    <tr><td>الكليـة:</td><td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td></tr>
-    <tr><td><?= htmlspecialchars($Class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>:</td><td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td></tr>
+    <tr><td></td><td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr']) ?></b></div></td></tr>
+    <tr><td>الكليـة:</td><td><?= htmlspecialchars($Certificate['FacultyName']) ?></td></tr>
+    <tr><td><?= $Class ?>:</td><td><u><?= $message ?></u></td></tr>
     <tr><td>تاريخ منح الدرجة:</td><td><u><?= $GradDate ?></u></td></tr>
     <tr><td>تاريخ إصدار الشهادة:</td><td><u><?= $DateNow ?></u></td></tr>
 </table>
 
 <table width="100%">
     <tr align="center">
-        <td colspan="2"><img src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png') ?>" alt="توقيع عميد الكلية"></td>
-        <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png') ?>" alt="توقيع مسجل الكلية"></td>
+        <td colspan="2"><img src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png') ?>"></td>
+        <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png') ?>"></td>
     </tr>
     <tr align="center">
-        <th colspan="2"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
-        <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
+        <th colspan="2"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '') ?></th>
+        <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '') ?></th>
     </tr>
+    <tr align="center"><th colspan="2">عميد الكلية</th><th>مسجل الكلية</th></tr>
+    <tr align="center"><td colspan="3"><br><br></td></tr>
     <tr align="center">
-        <th colspan="2">عميد الكلية</th>
-        <th>مسجل الكلية</th>
+        <th colspan="3"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '') ?></th>
     </tr>
-    <tr align="center"><td colspan="3"><br><br><br></td></tr>
-    <tr align="center">
-        <th colspan="3"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
-    </tr>
-    <tr align="center">
-        <th colspan="3">أمين الشؤون العلمية</th>
-    </tr>
+    <tr align="center"><th colspan="3">أمين الشؤون العلمية</th></tr>
 </table>
 
 </body>
