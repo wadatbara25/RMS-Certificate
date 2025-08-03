@@ -210,13 +210,13 @@ function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'gener
         ],
         'transcript' => [
             'en' => [
-                'FMAS' => 'TransscriptEnNurs.php',
+                'FMAS' => 'TransscriptComEn.php',
                 'FEDU' => 'TransscriptComEn.php',
                 'FERD' => 'TransscriptComEn.php',
                 'FCS'  => 'TransscriptComEn.php',
-                'FMED' => 'TransscriptEn.php',
-                'FVM'  => 'TransscriptEn.php',
-                'default' => 'TransscriptEn.php',
+                'FMED' => 'TransscriptComEn.php',
+                'FVM'  => 'TransscriptComEn.php',
+                'default' => 'TransscriptComEn.php',
             ],
             'ar' => [
                 'FMAS' => 'TransscriptComAr.php',
