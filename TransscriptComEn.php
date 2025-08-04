@@ -89,12 +89,13 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     </style>
 </head>
 <body>
-<table class="T1" align="center" width="90%">
+<table class="T1" align="center" width="90%" border="0" dir="rtl">
     <tr align="left">
         <?php
         $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
         $imagePath = "saved_images/$safeId.jpg";
         ?>
+        <th></th>
         <td colspan="2">
             <?php if (file_exists($imagePath)): ?>
                 <img class="student-photo" src="<?= htmlspecialchars($imagePath) ?>" alt="Student photo" />
@@ -102,11 +103,11 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                 <span style="color: gray; font-size: 14px;">📷 No photo available</span>
             <?php endif; ?>
         </td>
-        <th></th><th></th>
+        
     </tr>
     <tr align="left">
-        <td><b style="font-family:'TimeNews'; font-size:11px;"><?= htmlspecialchars($Certificate['AdmissionFormNo']) ?> :Student Number</b></td>
         <td colspan="2"></td>
+        <td><b style="font-family:'TimeNews'; font-size:11px;"><?= htmlspecialchars($Certificate['AdmissionFormNo']) ?> :Student Number</b></td>
     </tr>
     <tr align="center">
         <td colspan="3"><b>Faculty of <?= htmlspecialchars($Certificate['FacultyNameEng']) ?></b></td>
@@ -114,11 +115,11 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     <tr align="center">
         <td colspan="3"><b>Academic Transcript<hr class="new1"></b></td>
     </tr>
-    <tr align="right">
+    <tr align="left" >
         <td><b>Nationality: <u><?= htmlspecialchars($Certificate['StudentNationalityEng']) ?></u></b></td>
         <td colspan="2"><b>Name: <u><?= htmlspecialchars($Certificate['StudentNameEng']) ?></u></b></td>
     </tr>
-    <tr align="right">
+    <tr align="left">
         <th><b>Specialization:</b> <u><?= htmlspecialchars($Certificate['SpecializationNameE']) ?></u></th>
         <th colspan="2"><b>Admission Date:</b> <u><?= $AddDate ?></u></th>
     </tr>
@@ -162,9 +163,9 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         <?php endforeach; ?>
         </div>
     </th></tr>
-    <tr align="right">
+    <tr align="left">
         <th colspan="3">
-            <b>Grades are converted into points as follows:</b><br>
+            <b>:Grades are converted into points as follows</b><br>
             <center>A = 4.00, B+ = 3.50, B = 3.00, C+ = 2.50, C = 2.00, D+ = 1.50, D = 1.00, F = 0.00</center>
         </th>
     </tr>
