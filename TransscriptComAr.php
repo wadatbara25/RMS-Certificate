@@ -11,188 +11,182 @@ $selectedServer = $_SESSION["server"];
 $id = $_GET["id"] ?? null;
 
 if (!$id) {
-    die("Invalid ID");
+    die("رقم الطالب غير صحيح.");
 }
 
 $conn = connectToDatabase($selectedServer);
-if (!$conn) {
-    die(print_r(sqlsrv_errors(), true));
+
+$Certificate = getCertificte($selectedServer, $id);
+$row = getUserById($selectedServer, $id);
+$Signatures = getAllSignatures($selectedServer, $Certificate['FacultyID']);
+
+if (!$Certificate || !$row || !$Signatures) {
+    die("لم يتم العثور على بيانات.");
 }
 
-$sql = "SELECT * FROM TranscriptF(?) ORDER BY SemesterID, SubjectCode";
-$params = [$id];
-$TRRR = sqlsrv_query($conn, $sql, $params);
-if (!$TRRR) {
+$AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
+$DateNow = date("d/m/Y");
+
+function divition($gpa) {
+    return $gpa >= 3.5 ? 'الأولى' : ($gpa >= 2.5 ? 'الثانية' : 'الثالثة');
+}
+
+$sql = "SELECT * FROM AcademicRecord(?) ORDER BY SemesterID, SubjectNameEng";
+$stmt = sqlsrv_query($conn, $sql, [$id]);
+
+if (!$stmt) {
     die(print_r(sqlsrv_errors(), true));
 }
 
 $data = [];
-while ($row = sqlsrv_fetch_array($TRRR, SQLSRV_FETCH_ASSOC)) {
-    $data[$row['SemesterID']][] = $row;
-}
-
-$Certificate = getCertificte($selectedServer, $id);
-$row = getUserById($selectedServer, $id);
-$facultyId = $Certificate['FacultyID'] ?? null;
-$Signatures = getAllSignatures($selectedServer, $facultyId);
-
-if (!$Certificate || !$row || !$Signatures) {
-    echo "No Result Found";
-    exit();
-}
-
-$GradDate = isset($Certificate['GraduationDate']) ? $Certificate['GraduationDate']->format('Y/m/d') : 'N/A';
-$AddDate = isset($Certificate['AdmissionDate']) ? $Certificate['AdmissionDate']->format('Y/m/d') : 'N/A';
-$DateNow = date("d/m/Y");
-
-function divition($gpa) {
-    return $gpa >= 3.50 ? 'First class' : ($gpa >= 2.50 ? 'Two' : 'Three');
+while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+    $semester = $row['SemesterID'];
+    $data[$semester][] = [
+        'Subject' => $row['SubjectName'],
+        'Hours' => $row['SubjectHours'],
+        'Grade' => $row['SubjectGrade'],
+        'GradePoints' => $row['GradePoint'] ?? 0,
+    ];
 }
 ?>
 <!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>Transcript</title>
+    <title>السجل الأكاديمي</title>
     <style>
-        body {
-            font-family: "Arial", sans-serif;
-            direction: rtl;
-        }
-        table.T1 {
-            width: 90%;
-            margin: auto;
-            background-color: #fff;
-            border: 0;
-        }
+        table.T1 { border: 0; background-color: #fff; text-align: center; }
         table.T2 {
             width: 100%;
             border-collapse: collapse;
             font-size: 12px;
-            text-align: center;
         }
-        .T2 th, .T2 td {
+        table.T2, th.T2, td.T2 {
             border: 1px solid black;
-            padding: 2px;
+            text-align: center;
         }
         .total-row {
             font-weight: bold;
-            background-color: #f2f2f2;
-        }
-        .student-photo, .signature {
-            width: 100px;
-            height: 100px;
-            object-fit: contain;
-            border: none;
-            filter: brightness(1.1) contrast(1.1);
+            background-color: #e0e0e0;
         }
         hr.new1 {
             border-top: 1px dashed red;
         }
+        img.signature {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border: 0;
+            border-radius: 2px;
+        }
+        img.student-photo {
+            width: 100px;
+            height: 100px;
+            object-fit: contain;
+            border: 0;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body>
-
-<table class="T1" align="center" width="90%"  border="0" dir="ltr" >
+<table class="T1" align="center" width="90%">
     <tr align="left">
-<?php
-$safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
-$imagePath = "saved_images/$safeId.jpg";
-?>
-
-<td colspan="2">
-    <?php if (file_exists($imagePath)): ?>
-        <img class="student-photo" src="<?= htmlspecialchars($imagePath) ?>" style="width: 100px; height: 100px; object-fit: contain; border-radius: 6px;" alt="صورة الطالب" />
-    <?php else: ?>
-        <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
-    <?php endif; ?>
-</td>
-        <td></td>
-        <td></td>
-      
+        <?php
+        $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
+        $imagePath = "saved_images/$safeId.jpg";
+        ?>
+        <td colspan="2">
+            <?php if (file_exists($imagePath)): ?>
+                <img class="student-photo" src="<?= htmlspecialchars($imagePath) ?>" alt="صورة الطالب" />
+            <?php else: ?>
+                <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
+            <?php endif; ?>
+        </td>
+        <th></th><th></th>
     </tr>
-    <tr align="left" >
-         <td><b style="font-family:'TimeNews'; font-size:11px;"><?= $Certificate['AdmissionFormNo'] ?></b><b style="font-family:'TimeNews'; font-size:11px;">:الرقم الجامعي</b></td>
-        <td ></td>
-         <td ></td>
-       
+    <tr align="left">
+        <td><b style="font-family:'TimeNews'; font-size:11px;"><?= htmlspecialchars($Certificate['AdmissionFormNo']) ?> :الرقم الجامعي</b></td>
+        <td colspan="2"></td>
     </tr>
-    <tr align="center"><td colspan="3"><b> كلية <?= $Certificate['FacultyName'] ?></b></td></tr>
-    <tr align="center"><td colspan="3"><b><?= $Certificate['DegreeNameAr'] ?></b></td></tr>
-    <tr align="center"><td colspan="3"><b>شهـادة تفـاصيـل<hr class="new1"></b></td></tr>
-    <tr align="right">
-        <td><b>الجنسية: <u><?= $Certificate['StudentNationality'] ?></u></b></td>
-        <td colspan="2"><b>الاسم: <u><?= $Certificate['StudentName'] ?></u></b></td>
+    <tr align="center">
+        <td colspan="3"><b>كلية <?= htmlspecialchars($Certificate['FacultyName']) ?></b></td>
+    </tr>
+    <tr align="center">
+        <td colspan="3"><b>سجل أكاديمي<hr class="new1"></b></td>
     </tr>
     <tr align="right">
-        <th><u><?= $GradDate ?> :تاريخ التخرج</u></th>
-        <th colspan="2"><u><?= $AddDate ?> :تاريخ الالتحاق</u></th>
+        <td><b>الجنسية: <u><?= htmlspecialchars($Certificate['StudentNationality']) ?></u></b></td>
+        <td colspan="2"><b>الاسم: <u><?= htmlspecialchars($Certificate['StudentName']) ?></u></b></td>
     </tr>
     <tr align="right">
-        <th><u><?= $Certificate['C_Hours'] ?>: الساعات المعتمدة الكلية</u></th>
-        <th colspan="2"></th>
+        <th><b>التخصص:</b> <u><?= htmlspecialchars($Certificate['SpecializationName']) ?></u></th>
+        <th colspan="2"><b>تاريخ القبول:</b> <u><?= $AddDate ?></u></th>
     </tr>
     <tr><th colspan="3">
         <div align="center">
-            <?php
+        <?php
             $TotalHs = 0;
             $TotalGs = 0;
-            foreach ($data as $semester => $subjects) {
-            ?>
-            <table class="T2" dir="rtl" >
-                <tr><td colspan="3" align="right" style="border:none;">الفصل الدراسي <?= $semester ?> :</td></tr>
+            foreach ($data as $semester => $entries):
+                $semesterHours = 0;
+                $semesterPoints = 0;
+        ?>
+            <table class="T2" dir="rtl">
+                <tr>
+                    <td colspan="3" align="right" style="border:none;">الفصل الدراسي <?= htmlspecialchars($semester) ?>:</td>
+                </tr>
                 <tr bgcolor="#f2f2f2">
                     <th width="70%">المقرر الدراسي</th>
-                    <th width="5%">السـاعات</th>
+                    <th width="15%">الساعات</th>
                     <th width="15%">التقدير</th>
                 </tr>
-                <?php
-                $totalHours = 0;
-                $gradePoints = 0;
-                foreach ($subjects as $subject) {
-                    $totalHours += $subject['SubjectHours'];
-                    $gradePoints += $subject['GradePoint'];
+                <?php foreach ($entries as $entry): 
+                    $semesterHours += (float)$entry['Hours'];
+                    $semesterPoints += (float)$entry['GradePoints'];
                 ?>
-                <tr>
-                    <td align="right"> <?= $subject['SubjectName'] ?> </td>
-                    <td> <?= $subject['SubjectHours'] ?> </td>
-                    <td> <?= $subject['SubjectGradeAr'] ?> </td>
-                </tr>
-                <?php } ?>
+                    <tr>
+                        <td align="right"><?= htmlspecialchars($entry['Subject']) ?></td>
+                        <td><?= number_format($entry['Hours'], 0) ?></td>
+                        <td><?= htmlspecialchars($entry['Grade']) ?></td>
+                    </tr>
+                <?php endforeach; 
+                    $TotalHs += $semesterHours;
+                    $TotalGs += $semesterPoints;
+                ?>
                 <tr class="total-row">
-                    <td>المعدل الفصلي = <?= number_format($gradePoints / $totalHours, 2) ?></td>
-                    <td><?= $totalHours ?></td>
-                    <td>المعدل التراكمي = <?= number_format(($TotalGs + $gradePoints) / ($TotalHs + $totalHours), 2) ?></td>
+                    <td>المعدل الفصلي = <?= $semesterHours > 0 ? number_format($semesterPoints / $semesterHours, 2) : 'N/A' ?></td>
+                    <td><?= number_format($semesterHours, 0) ?></td>
+                    <td>المعدل التراكمي = <?= $TotalHs > 0 ? number_format($TotalGs / $TotalHs, 2) : 'N/A' ?></td>
                 </tr>
-            </table>
-            <br>
-            <?php
-            $TotalHs += $totalHours;
-            $TotalGs += $gradePoints;
-            }
-            ?>
+            </table><br>
+        <?php endforeach; ?>
         </div>
     </th></tr>
     <tr align="right">
-        <th colspan="3"><b>:يتم تحويل التقديرات إلى نقاط على النحو التالي</b><br>
-            <center>أ=4.00, ب+=3.50, ب=3.00, ج+=2.50, ج=2.00, ر=0.00</center>
+        <th colspan="3">
+            <b>:يتم تحويل التقديرات إلى نقاط على النحو التالي</b><br>
+            <center>أ = 4.00, ب+ = 3.50, ب = 3.00, ج+ = 2.50, ج = 2.00, د+ = 1.50, د = 1.00, ر = 0.00</center>
         </th>
     </tr>
     <tr align="center">
-        <td colspan="2"><img class="signature" src="img/<?= $Signatures['ImgDeann'] ?>"></td>
-        <td><img class="signature" src="img/<?= $Signatures['Imgregg'] ?>"></td>
+        <td>
+            <img class="signature" src="img/<?= htmlspecialchars($Signatures['ImgDeann']) ?>" alt="توقيع العميد" />
+        </td>
+        <td colspan="2">
+            <img class="signature" src="img/<?= htmlspecialchars($Signatures['Imgregg']) ?>" alt="توقيع المسجل" />
+        </td>
     </tr>
     <tr align="center">
-        <th colspan="2"><i><?= $Signatures['FacultyDean_NameA'] ?></i></th>
-        <th><i><?= $Signatures['FacultyRegistrar_NameA'] ?></i></th>
+        <th colspan="2"><b><i><?= htmlspecialchars($Signatures['FacultyDean_NameA']) ?></i></b></th>
+        <th><b><i><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA']) ?></i></b></th>
     </tr>
     <tr align="center">
         <th colspan="2">عميد الكلية</th>
-        <th>مسجل الكلية</th>
+        <th>المسجل</th>
     </tr>
     <tr><th colspan="3"><br></th></tr>
     <tr align="center">
-        <th colspan="3"><br><br><br><i><?= $Signatures['AcademicAffairsDean_NameA'] ?></i></th>
+        <th colspan="3"><br><br><br><b><i><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA']) ?></i></b></th>
     </tr>
     <tr align="center">
         <th colspan="3">أمين الشؤون العلمية</th>
