@@ -155,7 +155,7 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
                     $TotalGs += $semesterPoints;
                 ?>
                 <tr class="total-row">
-                    <td>Semester GPA = <?= $semesterHours > 0 ? number_format($semesterPoints / $semesterHours, 2) : 'N/A' ?></td>
+                    <td>GPA = <?= $semesterHours > 0 ? number_format($semesterPoints / $semesterHours, 2) : 'N/A' ?></td>
                     <td><?= number_format($semesterHours, 0) ?></td>
                     <td>CGPA = <?= $TotalHs > 0 ? number_format($TotalGs / $TotalHs, 2) : 'N/A' ?></td>
                 </tr>
