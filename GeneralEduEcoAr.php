@@ -265,3 +265,5 @@ $imagePath = "saved_images/$safeId.jpg";
 </html>
 
 <?php sqlsrv_close($conn); ?>
+
+

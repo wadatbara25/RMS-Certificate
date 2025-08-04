@@ -1,9 +1,9 @@
 <?php
 // إعداد الاتصال بقاعدة البيانات
-$serverName = "nursing.database.windows.net";
+$serverName = "educations.database.windows.net";
 $connectionOptions = [
     "Database" => "RRS_MANAGEMENT",
-    "Uid" => "nurs",
+    "Uid" => "edu",
     "PWD" => "P@ssw0rd",
     "CharacterSet" => "UTF-8"
 ];

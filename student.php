@@ -152,7 +152,7 @@ if (empty($users)) {
         <table id="studentsTable" class="table table-striped table-bordered" >
             <thead class="table-dark" >
                 <tr >
-                    <th rowspan="2" class="text-center">رقم الطالب</th>
+                    <th rowspan="2" class="text-center"رقم الطالب</th>
                     <th rowspan="2" class="text-center">الاسم</th>
                     <th colspan="2" class="text-center">العامة</th>
                     <th colspan="2" class="text-center">التفاصيل</th>
