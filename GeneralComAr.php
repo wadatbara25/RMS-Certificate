@@ -1,20 +1,59 @@
- <?php
+<?php
 session_start();
 include 'db_connection.php';
 
+// دالة عرض صفحة خطأ بطريقة مرتبة
+function renderErrorPage($message) {
+    echo '
+    <!DOCTYPE html>
+    <html lang="ar">
+    <head>
+        <meta charset="UTF-8">
+        <title>خطأ</title>
+        <style>
+            body { font-family: "Almarai", sans-serif; background-color: #f9f9f9; color: #c00; text-align: center; direction: rtl; padding: 100px 20px; }
+            .error-box { display: inline-block; background: #ffeaea; border: 2px solid #f99; padding: 20px 40px; border-radius: 10px; font-size: 20px; }
+            a { color: blue; text-decoration: none; }
+        </style>
+    </head>
+    <body>
+        <div class="error-box">
+            <h1>⚠️ خطأ في البيانات</h1>
+            <p>' . htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
+            <br>
+            <p><a href="javascript:history.back();">🔙 العودة للخلف</a></p>
+        </div>
+    </body>
+    </html>';
+    exit();
+}
+
+// تحقق من تسجيل الدخول
+if (empty($_SESSION["username"])) {
+    header("Location: login.php");
+    exit();
+}
+
+$selectedServer = $_SESSION["server"];
+$id = $_GET["id"] ?? null;
+
+if (!$id) {
+    renderErrorPage("لم يتم تحديد معرف الطالب.");
+}
+
 // معالجة رفع الصورة وتحسينها
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
-    $studentId = $_GET['id'] ?? null;
-    if (!$studentId) {
-        renderErrorPage("لا يمكن رفع الصورة بدون معرف الطالب.");
-    }
-
+    $studentId = $id;
     $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $studentId);
     $targetDir = __DIR__ . "/saved_images";
     $targetFile = $targetDir . "/$safeId.jpg";
 
     if (!is_dir($targetDir)) {
         mkdir($targetDir, 0777, true);
+    }
+
+    if (!isset($_FILES["student_photo"]) || $_FILES["student_photo"]["error"] !== UPLOAD_ERR_OK) {
+        renderErrorPage("⚠️ حدث خطأ أثناء رفع الصورة.");
     }
 
     $imageTmp = $_FILES["student_photo"]["tmp_name"];
@@ -64,49 +103,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
     exit();
 }
 
-// تحقق من تسجيل الدخول
-if (empty($_SESSION["username"])) {
-    header("Location: login.php");
-    exit();
-}
-
-$selectedServer = $_SESSION["server"];
-$id = $_GET["id"] ?? null;
-
-function renderErrorPage($message) {
-    echo '
-    <!DOCTYPE html>
-    <html lang="ar">
-    <head>
-        <meta charset="UTF-8">
-        <title>خطأ</title>
-        <style>
-            body { font-family: "Almarai", sans-serif; background-color: #f9f9f9; color: #c00; text-align: center; direction: rtl; padding: 100px 20px; }
-            .error-box { display: inline-block; background: #ffeaea; border: 2px solid #f99; padding: 20px 40px; border-radius: 10px; font-size: 20px; }
-            a { color: blue; text-decoration: none; }
-        </style>
-    </head>
-    <body>
-        <div class="error-box">
-            <h1>⚠️ خطأ في البيانات</h1>
-            <p>' . htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</p>
-            <br>
-            <p><a href="javascript:history.back();">🔙 العودة للخلف</a></p>
-        </div>
-    </body>
-    </html>';
-    exit();
-}
-
-if (!$id) {
-    renderErrorPage("لم يتم تحديد معرف الطالب.");
-}
-
+// اتصال بقاعدة البيانات
 $conn = connectToDatabase($selectedServer);
 if (!$conn) {
     renderErrorPage("فشل الاتصال بقاعدة البيانات.");
 }
 
+// جلب السجل الأكاديمي
 $sql = "SELECT * FROM TranscriptF(?) ORDER BY SemesterID, SubjectNameEng";
 $params = [$id];
 $TRRR = sqlsrv_query($conn, $sql, $params);
@@ -114,6 +117,7 @@ if (!$TRRR) {
     renderErrorPage("فشل في جلب السجل الأكاديمي.");
 }
 
+// جلب بيانات الشهادة، الطالب، والتوقيعات
 $Certificate = getCertificte($selectedServer, $id);
 $row = getUserById($selectedServer, $id);
 
@@ -123,13 +127,16 @@ if (!$facultyId) {
 }
 
 $Signatures = getAllSignatures($selectedServer, $facultyId);
+
 if (!$Signatures) renderErrorPage("لم يتم العثور على بيانات التوقيعات.");
 if (!$Certificate) renderErrorPage("لم يتم العثور على بيانات الشهادة للطالب.");
 if (!$row) renderErrorPage("لم يتم العثور على بيانات الطالب.");
 
-$GradDate = $Certificate['GraduationDate']->format('Y/m/d');
+// تاريخ التخرج وتاريخ اليوم
+$GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('Y/m/d') : '';
 $DateNow = date("Y/m/d");
 
+// دوال حساب التقدير حسب المعدل
 function divition($gpa) {
     return match (true) {
         $gpa >= 3.50 => 'الأولى',
@@ -151,10 +158,10 @@ $General = 'شرف';
 $isHonorDegree = str_contains($Certificate['DegreeNameAr'], $General);
 $message = $isHonorDegree ? divition($Certificate['CGPA']) : divitionG($Certificate['CGPA']);
 $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
-?>
 
+?>
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <title>شهادة عامة عربي</title>
@@ -212,20 +219,22 @@ $imagePath = "saved_images/$safeId.jpg";
 
 <?php if (file_exists($imagePath)): ?>
     <div style="width: 120px; height: 120px; margin-bottom: 10px;">
-        <img  src="<?= htmlspecialchars($imagePath) ?>" class="student-photo"
-            style="width: 100%; height: 100%; object-fit: contain; border: 0px solid #000; border-radius: 2px;"  alt="صورة الطالب" />
+        <img src="<?= htmlspecialchars($imagePath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="student-photo"
+            style="width: 100%; height: 100%; object-fit: contain; border-radius: 2px;" alt="صورة الطالب" />
     </div>
 <?php else: ?>
     <div style="width: 120px; margin-bottom: 10px; text-align: center;">
         <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
-        <form action="" method="post" enctype="multipart/form-data">
-            <input type="file" name="student_photo" accept="image/*" required>
+        <form action="" method="post" enctype="multipart/form-data" style="margin-top: 5px;">
+            <input type="file" name="student_photo" accept="image/jpeg,image/png" required>
             <input type="submit" name="upload_photo" value="رفع صورة">
         </form>
     </div>
 <?php endif; ?>
 
-<h5><?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>:الرقم الجامعي</h5>
+<h5 style="font-family:'Droid Arabic Kufi'; font-size: 16px;">
+    <?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?> : الرقم الجامعي
+</h5>
 
 <div align="center"><b style="font-family:'Droid Arabic Kufi'; font-size:24px;">شهـادة</b></div>
 <div align="right"><b style="font-family: 'Amiri'; font-size:28px;">: نشهد بأن مجلس الأساتذة قد منح</b></div>
@@ -237,27 +246,46 @@ $imagePath = "saved_images/$safeId.jpg";
 </div>
 
 <table align="right" style="font-family:'Droid Arabic Kufi'; font-size:16px" dir="rtl">
-    <tr><td></td><td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr']) ?></b></div></td></tr>
-    <tr><td>الكليـة:</td><td><?= htmlspecialchars($Certificate['FacultyName']) ?></td></tr>
-    <tr><td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"><?= htmlspecialchars($Class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')?>:</td><td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></b></td></tr>
-    <tr><td>تاريخ إصدار الشهادة:</td><td><u><?= $DateNow ?></u></td></tr>
+    <tr>
+        <td></td>
+        <td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td>
+    </tr>
+    <tr>
+        <td>الكليـة:</td>
+        <td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
+    </tr>
+    <tr>
+        <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;"><?= htmlspecialchars($Class, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>:</b></td>
+        <td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td>
+    </tr>
+    <tr>
+        <td>تاريخ إصدار الشهادة:</td>
+        <td><u><?= $DateNow ?></u></td>
+    </tr>
 </table>
 
-<table width="100%">
+<table width="100%" style="font-family:'Droid Arabic Kufi'; font-size:16px;" dir="rtl">
     <tr align="center">
-        <td colspan="2"><img src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png') ?>"></td>
-        <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png') ?>"></td>
+        <td colspan="2"><img src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="عميد الكلية"></td>
+        <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="مسجل الكلية"></td>
     </tr>
     <tr align="center">
-        <th colspan="2"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '') ?></th>
-        <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '') ?></th>
+        <th colspan="2"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
+        <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
     </tr>
-    <tr align="center"><th colspan="2">عميد الكلية</th><th>مسجل الكلية</th></tr>
-    <tr align="center"><td colspan="3"><br><br></td></tr>
     <tr align="center">
-        <th colspan="3"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '') ?></th>
+        <th colspan="2">عميد الكلية</th>
+        <th>مسجل الكلية</th>
     </tr>
-    <tr align="center"><th colspan="3">أمين الشؤون العلمية</th></tr>
+    <tr align="center">
+        <td colspan="3"><br><br></td>
+    </tr>
+    <tr align="center">
+        <th colspan="3"><?= htmlspecialchars($Signatures['AcademicAffairsDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
+    </tr>
+    <tr align="center">
+        <th colspan="3">أمين الشؤون العلمية</th>
+    </tr>
 </table>
 
 </body>
