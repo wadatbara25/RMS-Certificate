@@ -1,56 +1,71 @@
 <?php
-// إعداد الاتصال بقاعدة البيانات
-$serverName = "educations.database.windows.net";
+set_time_limit(0);
+
+// الاتصال بقاعدة البيانات
+$serverName = "veterinary.database.windows.net";
 $connectionOptions = [
     "Database" => "RRS_MANAGEMENT",
-    "Uid" => "edu",
+    "Uid" => "vet",
     "PWD" => "P@ssw0rd",
     "CharacterSet" => "UTF-8"
 ];
-
-// الاتصال
 $conn = sqlsrv_connect($serverName, $connectionOptions);
 if ($conn === false) {
     die("❌ فشل الاتصال: " . print_r(sqlsrv_errors(), true));
 }
 
-// استعلام لجلب الصور
-$sql = "SELECT StudentID, Photo FROM StudentsPhoto";
-$stmt = sqlsrv_query($conn, $sql, [], ["Scrollable" => SQLSRV_CURSOR_KEYSET]);
-
-if ($stmt === false) {
-    die("❌ خطأ في الاستعلام: " . print_r(sqlsrv_errors(), true));
-}
-
-// إنشاء مجلد لحفظ الصور
+// مجلد الصور
 $folder = __DIR__ . "/saved_images";
-if (!is_dir($folder)) {
-    if (!mkdir($folder, 0777, true)) {
-        die("❌ تعذر إنشاء المجلد: $folder");
-    }
+if (!is_dir($folder) && !mkdir($folder, 0777, true)) {
+    die("❌ تعذر إنشاء المجلد: $folder");
 }
 
-// حفظ الصور
-while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
-    $id = $row['StudentID'];
-    $imageData = $row['Photo'];
+$batchSize = 1000; // حجم الدفعة
+$offset = 0;
 
-    echo "معرف الطالب: $id<br>";
+while (true) {
+    $sql = "
+        SELECT StudentID, Photo
+        FROM StudentsPhoto
+        ORDER BY StudentID
+        OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+    ";
+    $stmt = sqlsrv_query($conn, $sql, [$offset, $batchSize]);
+    if ($stmt === false) {
+        die("❌ خطأ في الاستعلام: " . print_r(sqlsrv_errors(), true));
+    }
 
-    if ($imageData !== null) {
-        $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $id);
-        $filename = $folder . "/" . $safeId . ".jpg";
-        if (file_put_contents($filename, $imageData) !== false) {
-            echo "✅ تم حفظ الصورة: " . basename($filename) . "<br>";
+    $rowsFetched = 0;
+
+    while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
+        $rowsFetched++;
+        $id = $row['StudentID'];
+        $imageData = $row['Photo'];
+
+        echo "معرف الطالب: $id — ";
+
+        if ($imageData !== null) {
+            $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $id);
+            $filename = $folder . "/" . $safeId . ".jpg";
+            if (file_put_contents($filename, $imageData) !== false) {
+                echo "✅ تم الحفظ: " . basename($filename) . "<br>";
+            } else {
+                echo "⚠️ فشل الحفظ<br>";
+            }
         } else {
-            echo "⚠️ فشل في حفظ الصورة: " . basename($filename) . "<br>";
+            echo "⚠️ لا توجد صورة<br>";
         }
-    } else {
-        echo "⚠️ لا توجد بيانات صورة للمعرّف: $id<br>";
     }
+
+    sqlsrv_free_stmt($stmt);
+
+    if ($rowsFetched < $batchSize) {
+        echo "✅ انتهى التحميل<br>";
+        break;
+    }
+
+    $offset += $batchSize;
 }
 
-// تنظيف وإغلاق الاتصال
-sqlsrv_free_stmt($stmt);
 sqlsrv_close($conn);
 ?>

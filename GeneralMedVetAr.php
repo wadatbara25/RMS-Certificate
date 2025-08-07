@@ -1,4 +1,4 @@
-<?php
+ <?php
 session_start();
 include 'db_connection.php';
 
@@ -239,8 +239,6 @@ $imagePath = "saved_images/$safeId.jpg";
 <table align="right" style="font-family:'Droid Arabic Kufi'; font-size:16px" dir="rtl">
     <tr><td></td><td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr']) ?></b></div></td></tr>
     <tr><td>الكليـة:</td><td><?= htmlspecialchars($Certificate['FacultyName']) ?></td></tr>
-    <tr><td>تاريخ الميلاد:</td><td><?= htmlspecialchars($Certificate['StudentBirthDate']->format('Y/m/d')) ?></td></tr>
-    <tr><td>تاريخ منح الدرجة:</td><td><u><?= $GradDate ?></u></td></tr>
     <tr><td>تاريخ إصدار الشهادة:</td><td><u><?= $DateNow ?></u></td></tr>
 </table>
 
