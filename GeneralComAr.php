@@ -161,7 +161,7 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
 
 ?>
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" >
 <head>
     <meta charset="UTF-8">
     <title>شهادة عامة عربي</title>
@@ -218,12 +218,12 @@ $imagePath = "saved_images/$safeId.jpg";
 ?>
 
 <?php if (file_exists($imagePath)): ?>
-    <div style="width: 120px; height: 120px; margin-bottom: 10px;">
+    <div style="width: 120px; height: 120px; margin-bottom: 10px; text-align:left;" >
         <img src="<?= htmlspecialchars($imagePath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="student-photo"
             style="width: 100%; height: 100%; object-fit: contain; border-radius: 2px;" alt="صورة الطالب" />
     </div>
 <?php else: ?>
-    <div style="width: 120px; margin-bottom: 10px; text-align: center;">
+    <div style="width: 120px; margin-bottom: 10px; text-align: left;" >
         <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
         <form action="" method="post" enctype="multipart/form-data" style="margin-top: 5px;">
             <input type="file" name="student_photo" accept="image/jpeg,image/png" required>
@@ -232,7 +232,7 @@ $imagePath = "saved_images/$safeId.jpg";
     </div>
 <?php endif; ?>
 
-<h5 style="font-family:'Droid Arabic Kufi'; font-size: 16px;">
+<h5 style="font-family:'Droid Arabic Kufi'; font-size: 11px;">
     <?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?> : الرقم الجامعي
 </h5>
 
@@ -251,7 +251,7 @@ $imagePath = "saved_images/$safeId.jpg";
         <td><div align="center"><b>درجة <?= htmlspecialchars($Certificate['DegreeNameAr'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></b></div></td>
     </tr>
     <tr>
-        <td>الكليـة:</td>
+        <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">الكليـة:</b></td>
         <td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
     </tr>
     <tr>
@@ -259,23 +259,30 @@ $imagePath = "saved_images/$safeId.jpg";
         <td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td>
     </tr>
     <tr>
-        <td>تاريخ إصدار الشهادة:</td>
+        <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ منح الدرجة:</b></td>
+        <td><u><?= htmlspecialchars($GradDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td> </tr>    
+   <tr>
+
+   <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ إصدار الشهادة:</b></td>
         <td><u><?= $DateNow ?></u></td>
     </tr>
 </table>
 
 <table width="100%" style="font-family:'Droid Arabic Kufi'; font-size:16px;" dir="rtl">
     <tr align="center">
+                <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="مسجل الكلية"></td>
+
         <td colspan="2"><img src="img/<?= htmlspecialchars($Signatures['ImgDeann'] ?? 'not-found.png', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="عميد الكلية"></td>
-        <td><img src="img/<?= htmlspecialchars($Signatures['Imgregg'] ?? 'not-found.png', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="مسجل الكلية"></td>
     </tr>
     <tr align="center">
+                <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
+
         <th colspan="2"><?= htmlspecialchars($Signatures['FacultyDean_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
-        <th><?= htmlspecialchars($Signatures['FacultyRegistrar_NameA'] ?? '', ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></th>
     </tr>
     <tr align="center">
-        <th colspan="2">عميد الكلية</th>
         <th>مسجل الكلية</th>
+        <th colspan="2">عميد الكلية</th>
+        
     </tr>
     <tr align="center">
         <td colspan="3"><br><br></td>
