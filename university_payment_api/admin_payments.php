@@ -12,7 +12,7 @@ if (empty($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 $serverName = "adminmanaer.database.windows.net";
 $connectionOptions = [
-    "Database" => "tbl_StudentAllForPayment",
+    "Database" => "StudentAllForPayment",
     "Uid" => "admini",
     "PWD" => "P@ssw0rd",
     "CharacterSet" => "UTF-8"
@@ -29,7 +29,7 @@ $keyword = trim($_GET['keyword'] ?? '');
 $perPage = (int)($_GET['limit'] ?? 10);
 $page = max(1, (int)($_GET['page'] ?? 1));
 
-$sql = "SELECT StudentID, StudentName, StudyFees, RegistrationFees, FacultyName, BatchName, SemesterID FROM dbo.StudentAllForPayment WHERE 1=1";
+$sql = "SELECT StudentID, StudentName, StudyFees, RegistrationFees, FacultyName, BatchName, SemesterID FROM dbo.tbl_StudentAllForPayment WHERE 1=1";
 $params = [];
 
 if ($facultyFilter !== '') {
