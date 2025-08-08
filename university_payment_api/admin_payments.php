@@ -12,7 +12,7 @@ if (empty($_SESSION['loggedin']) || $_SESSION['loggedin'] !== true) {
 
 $serverName = "adminmanaer.database.windows.net";
 $connectionOptions = [
-    "Database" => "StudentAllForPayment",
+    "Database" => "tbl_StudentAllForPayment",
     "Uid" => "admini",
     "PWD" => "P@ssw0rd",
     "CharacterSet" => "UTF-8"
