@@ -11,7 +11,7 @@ $selectedServer = $_SESSION["server"];
 $id = $_GET["id"] ?? null;
 
 if (!$id) {
-    die("Invalid student ID.");
+    die("رقم الطالب غير صحيح.");
 }
 
 $conn = connectToDatabase($selectedServer);
@@ -21,15 +21,13 @@ $row = getUserById($selectedServer, $id);
 $Signatures = getAllSignatures($selectedServer, $Certificate['FacultyID']);
 
 if (!$Certificate || !$row || !$Signatures) {
-    die("No data found.");
+    die("لم يتم العثور على بيانات.");
 }
+$GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('Y/m/d') : '';
+$AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
+$DateNow = date("Y/m/d");
 
-$AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
-$DateNow = date("d/m/Y");
 
-function division($gpa) {
-    return $gpa >= 3.5 ? 'First class' : ($gpa >= 2.5 ? 'Second class' : 'Third class');
-}
 
 $sql = "SELECT * FROM AcademicRecord(?) ORDER BY SemesterID, SubjectNameEng";
 $stmt = sqlsrv_query($conn, $sql, [$id]);
@@ -48,7 +46,36 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         'GradePoints' => $row['GradePoint'] ?? 0,
     ];
 }
+
+// تاريخ التخرج وتاريخ اليوم
+$GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('Y/m/d') : '';
+$DateNow = date("Y/m/d");
+$AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
+
+
+// Division calculation
+function divisionWithHonors($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'First Class',
+        $gpa >= 3.00 => 'Second Class - Division One',
+        $gpa >= 2.50 => 'Second Class - Division Two',
+        default => 'Third Class'
+    };
+}
+
+function divisionGeneral($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'First Class',
+        $gpa >= 2.50 => 'Second Class',
+        default => 'Third Class'
+    };
+}
+
+$isHonors = str_contains($Certificate['DegreeNameEn'], 'Honours');
+$message = $isHonors ? divisionWithHonors($Certificate['CGPA']) : divisionGeneral($Certificate['CGPA']);
+$Class = $isHonors ? 'Class' : 'Degree';
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -112,6 +139,10 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     <tr align="center">
         <td colspan="3"><b>Faculty of <?= htmlspecialchars($Certificate['FacultyNameEng']) ?></b></td>
     </tr>
+     <tr align="center">
+        <td colspan="3"><b><?php echo $Certificate['DegreeNameEn'];?></b></td>
+   
+     </tr>
     <tr align="center">
         <td colspan="3"><b>Academic Transcript<hr class="new1"></b></td>
     </tr>
@@ -119,10 +150,18 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         <td><b>Nationality: <u><?= htmlspecialchars($Certificate['StudentNationalityEng']) ?></u></b></td>
         <td colspan="2"><b>Name: <u><?= htmlspecialchars($Certificate['StudentNameEng']) ?></u></b></td>
     </tr>
-    <tr align="left">
-        <th><b>Specialization:</b> <u><?= htmlspecialchars($Certificate['SpecializationNameE']) ?></u></th>
-        <th colspan="2"><b>Admission Date:</b> <u><?= $AddDate ?></u></th>
+         <tr align="left">
+        
+        <th><b></b>&nbsp;<u><?php echo $GradDate;?> :Graduation Date</u></th>
+        <th colspan="2"><b></b>&nbsp;<u><?php echo $AddDate;?>: Admission Date</u></th>
     </tr>
+    
+     <tr align="left">
+       
+         <th> <b></b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?>:Total Credit Hours</u></th>
+         <th colspan="2"><b><?php echo $Class;?> </b>&nbsp;<u><?php echo $message;?> </u></th>
+    </tr>
+
     <tr><th colspan="3">
         <div align="center">
         <?php

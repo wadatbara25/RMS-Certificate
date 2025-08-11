@@ -23,13 +23,10 @@ $Signatures = getAllSignatures($selectedServer, $Certificate['FacultyID']);
 if (!$Certificate || !$row || !$Signatures) {
     die("لم يتم العثور على بيانات.");
 }
+$GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('Y/m/d') : '';
+$AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
+$DateNow = date("Y/m/d");
 
-$AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
-$DateNow = date("d/m/Y");
-
-function divition($gpa) {
-    return $gpa >= 3.5 ? 'الأولى' : ($gpa >= 2.5 ? 'الثانية' : 'الثالثة');
-}
 
 $sql = "SELECT * FROM AcademicRecord(?) ORDER BY SemesterID, SubjectNameEng";
 $stmt = sqlsrv_query($conn, $sql, [$id]);
@@ -48,12 +45,37 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         'GradePoints' => $row['GradePoint'] ?? 0,
     ];
 }
+
+
+// دوال حساب التقدير حسب المعدل
+function divition($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'الأولى',
+        $gpa >= 3.00 => 'الثانية - القسم الأول',
+        $gpa >= 2.50 => 'الثانية - القسم الثاني',
+        default => 'الثالثة'
+    };
+}
+
+function divitionG($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'الأولى',
+        $gpa >= 2.50 => 'الثانية',
+        default => 'الثالثة'
+    };
+}
+
+$General = 'شرف';
+$isHonorDegree = str_contains($Certificate['DegreeNameAr'], $General);
+$message = $isHonorDegree ? divition($Certificate['CGPA']) : divitionG($Certificate['CGPA']);
+$Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
+
 ?>
 <!DOCTYPE html>
 <html lang="ar">
 <head>
     <meta charset="UTF-8">
-    <title>السجل الأكاديمي</title>
+    <title> شهادة التفاصيل  </title>
     <style>
         table.T1 { border: 0; background-color: #fff; text-align: center; }
         table.T2 {
@@ -111,17 +133,40 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     <tr align="center">
         <td colspan="3"><b>كلية <?= htmlspecialchars($Certificate['FacultyName']) ?></b></td>
     </tr>
-    <tr align="center">
-        <td colspan="3"><b>سجل أكاديمي<hr class="new1"></b></td>
     </tr>
-    <tr align="right">
-        <td><b>الجنسية: <u><?= htmlspecialchars($Certificate['StudentNationality']) ?></u></b></td>
-        <td colspan="2"><b>الاسم: <u><?= htmlspecialchars($Certificate['StudentName']) ?></u></b></td>
+      <tr align="center">
+        <td colspan="3"><b><?php echo $Certificate['DegreeNameAr'];?></b></td>
+   
+     </tr>
+     <tr align="center">
+       
+       <td colspan="3"><b>شهـادة تفـاصيـل<hr class="new1"></b></td>
+  
     </tr>
-    <tr align="right">
-        <th><b>التخصص:</b> <u><?= htmlspecialchars($Certificate['SpecializationName']) ?></u></th>
-        <th colspan="2"><b>تاريخ القبول:</b> <u><?= $AddDate ?></u></th>
+        
+    
+     
+     <tr align="right">
+        
+        <td><b>الجنسية: <u><?php echo $Certificate['StudentNationality'];?></u> </b> </td>
+        <td colspan="2"> <b>الاسم:<u> <?php echo $Certificate['StudentName'];?> </u> </b> </td>
+        
     </tr>
+   
+    
+   
+     <tr align="right">
+        
+        <th><b></b>&nbsp;<u><?php echo $GradDate;?> :تاريخ  التخرج</u></th>
+        <th colspan="2"><b></b>&nbsp;<u><?php echo $AddDate;?> :تاريخ الالتحاق</u></th>
+    </tr>
+    
+     <tr align="right">
+       
+         <th> <b></b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?>: الساعات المعتمدة الكلية</u></th>
+         <th colspan="2"><b><?php echo $Class;?> :</b>&nbsp;<u><?php echo $message;?> </u></th>
+    </tr>
+   
     <tr><th colspan="3">
         <div align="center">
         <?php
