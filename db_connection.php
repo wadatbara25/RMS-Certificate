@@ -194,9 +194,9 @@ function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'gener
                 'FEDU' => 'GeneralEduEcoEn.php',
                 'FERD' => 'GeneralEduEcoEn.php',
                 'FCS'  => 'GeneralComEn.php',
-                'FMED' => 'GeneralEn.php',
-                'FVM'  => 'GeneralEn.php',
-                'default' => 'GeneralEn.php',
+                'FMED' => 'GeneralMedVetEn.php',
+                'FVM'  => 'GeneralMedVetEn.php',
+                'default' => 'GeneralMedVetEn.php',
             ],
             'ar' => [
                 'FMAS' => 'GeneralComAr.php',

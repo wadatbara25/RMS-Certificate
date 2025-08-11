@@ -291,7 +291,8 @@ $imagePath = "saved_images/$safeId.jpg";
         <td><u><?= htmlspecialchars($message, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td>
     </tr>
     <tr>
-        <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">التخصص:</b><?= htmlspecialchars($Certificate['SpecializationName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>      
+        <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">التخصص:</b></td>
+        <td><?= htmlspecialchars($Certificate['SpecializationName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>      
     <tr>
         <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ منح الدرجة:</b></td>
         <td><u><?= htmlspecialchars($GradDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td> </tr>    

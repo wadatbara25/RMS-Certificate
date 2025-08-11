@@ -84,27 +84,7 @@ if (!$row) renderErrorPage("Student data not found.");
 $GradDate = $Certificate['GraduationDate']->format('d/m/Y');
 $DateNow = date("d/m/Y");
 
-// Division calculation
-function divisionWithHonors($gpa) {
-    return match (true) {
-        $gpa >= 3.50 => 'First Class',
-        $gpa >= 3.00 => 'Second Class - Division One',
-        $gpa >= 2.50 => 'Second Class - Division Two',
-        default => 'Third Class'
-    };
-}
 
-function divisionGeneral($gpa) {
-    return match (true) {
-        $gpa >= 3.50 => 'First Class',
-        $gpa >= 2.50 => 'Second Class',
-        default => 'Third Class'
-    };
-}
-
-$isHonors = str_contains($Certificate['DegreeNameEn'], 'Honours');
-$message = $isHonors ? divisionWithHonors($Certificate['CGPA']) : divisionGeneral($Certificate['CGPA']);
-$Class = $isHonors ? 'Class' : 'Degree';
 ?>
 
 <!DOCTYPE html>
@@ -157,15 +137,23 @@ $Class = $isHonors ? 'Class' : 'Degree';
 
 <button id="printBtn" onclick="printCertificate()">🖨️ Print Certificate</button>
 
-<?php if (!empty($Certificate['Photo'])): ?>
-    <div style="width: 120px; height: 120px; margin-bottom: 10px;" align="left">
+<?php
+$safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $Certificate['StudentID'] ?? $id);
+$imagePath = "saved_images/$safeId.jpg";
+?>
+
+<div style="width: 120px; height: 120px; margin-bottom: 10px;" align="left">
+    <?php if (file_exists($imagePath)): ?>
         <img 
-            src="data:image/jpeg;base64,<?= base64_encode($Certificate['Photo']) ?>" 
-            alt="Student Photo"
-            style="width: 120px; height: 120px; object-fit: cover; border-radius: 10px; border: 2px solid #ccc; display: block;"
+            src="<?= htmlspecialchars($imagePath) ?>" 
+            alt="صورة الطالب"
+            style="width: 120px; height: 120px; object-fit: contain; border-radius: 10px; border: 0px solid #ccc; display: block;"
         />
-    </div>
-<?php endif; ?>
+    <?php else: ?>
+        <div style="text-align: center; font-size: 14px; color: gray;">📷 لا توجد صورة</div>
+    <?php endif; ?>
+</div>
+
 
 <h5>Student No: <?= htmlspecialchars($Certificate['AdmissionFormNo'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></h5>
 
