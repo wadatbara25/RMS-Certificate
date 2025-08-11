@@ -41,6 +41,20 @@ if (!$id) {
     renderErrorPage("لم يتم تحديد معرف الطالب.");
 }
 
+// حذف الصورة عند الطلب
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["delete_photo"])) {
+    $studentId = $id;
+    $safeId = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $studentId);
+    $targetFile = __DIR__ . "/saved_images/$safeId.jpg";
+
+    if (file_exists($targetFile)) {
+        unlink($targetFile);
+    }
+
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit();
+}
+
 // معالجة رفع الصورة وتحسينها
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
     $studentId = $id;
@@ -64,7 +78,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST["upload_photo"])) {
         renderErrorPage("⚠️ الصيغة غير مدعومة. يُرجى رفع صورة بصيغة JPG أو PNG.");
     }
 
-    // تحميل الصورة الأصلية
     $srcImage = null;
     if ($fileType === 'image/jpeg') {
         $srcImage = @imagecreatefromjpeg($imageTmp);
@@ -117,7 +130,7 @@ if (!$TRRR) {
     renderErrorPage("فشل في جلب السجل الأكاديمي.");
 }
 
-// جلب بيانات الشهادة، الطالب، والتوقيعات
+// جلب بيانات الشهادة والطالب والتوقيعات
 $Certificate = getCertificte($selectedServer, $id);
 $row = getUserById($selectedServer, $id);
 
@@ -158,10 +171,9 @@ $General = 'شرف';
 $isHonorDegree = str_contains($Certificate['DegreeNameAr'], $General);
 $message = $isHonorDegree ? divition($Certificate['CGPA']) : divitionG($Certificate['CGPA']);
 $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
-
 ?>
 <!DOCTYPE html>
-<html lang="ar" >
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <title>شهادة عامة عربي</title>
@@ -180,7 +192,17 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
             font-family: 'Almarai', sans-serif;
         }
         #printBtn:hover { background-color: #0056b3; }
-        @media print { #printBtn { display: none !important; } }
+
+        .no-print {
+            display: block;
+        }
+
+        @media print {
+            #printBtn,
+            .no-print {
+                display: none !important;
+            }
+        }
 
         table img {
             width: 100px;
@@ -205,6 +227,10 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
             window.print();
             btn.style.display = 'block';
         }
+
+        function confirmDelete() {
+            return confirm("هل أنت متأكد أنك تريد حذف الصورة؟");
+        }
     </script>
 </head>
 <body>
@@ -218,14 +244,19 @@ $imagePath = "saved_images/$safeId.jpg";
 ?>
 
 <?php if (file_exists($imagePath)): ?>
-    <div style="width: 120px; height: 120px; margin-bottom: 10px; text-align:left;" >
-        <img src="<?= htmlspecialchars($imagePath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" class="student-photo"
-            style="width: 100%; height: 100%; object-fit: contain; border-radius: 2px;" alt="صورة الطالب" />
+    <div style="width: 120px; margin-bottom: 10px; text-align: left;">
+        <img src="<?= htmlspecialchars($imagePath, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="صورة الطالب"
+            style="width: 100%; height: 100%; object-fit: contain; border-radius: 2px;" />
+        
+        <form method="post" class="no-print" onsubmit="return confirmDelete();">
+            <input type="submit" name="delete_photo" value="🗑️ حذف الصورة"
+                style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+        </form>
     </div>
 <?php else: ?>
     <div style="width: 120px; margin-bottom: 10px; text-align: left;" >
         <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
-        <form action="" method="post" enctype="multipart/form-data" style="margin-top: 5px;">
+        <form action="" method="post" enctype="multipart/form-data" class="no-print">
             <input type="file" name="student_photo" accept="image/jpeg,image/png" required>
             <input type="submit" name="upload_photo" value="رفع صورة">
         </form>
@@ -254,7 +285,7 @@ $imagePath = "saved_images/$safeId.jpg";
         <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">الكليـة:</b></td>
         <td><?= htmlspecialchars($Certificate['FacultyName'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></td>
     </tr>
-
+  
     <tr>
         <td><b style="font-family:'Droid Arabic Kufi'; font-size:16px;">تاريخ منح الدرجة:</b></td>
         <td><u><?= htmlspecialchars($GradDate, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></u></td> </tr>    
