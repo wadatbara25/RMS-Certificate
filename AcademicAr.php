@@ -25,7 +25,7 @@ if (!$Certificate || !$row || !$Signatures) {
 }
 
 $AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
-$DateNow = date("d/m/Y");
+$DateNow = date("Y/m/d");
 
 function divition($gpa) {
     return $gpa >= 3.5 ? 'First class' : ($gpa >= 2.5 ? 'Two' : 'Three');

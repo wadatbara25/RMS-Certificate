@@ -48,9 +48,9 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
 }
 
 // تاريخ التخرج وتاريخ اليوم
-$GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('Y/m/d') : '';
-$DateNow = date("Y/m/d");
-$AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
+$GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('d/m/Y') : '';
+$DateNow = date("d/m/Y");
+$AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
 
 
 // Division calculation
