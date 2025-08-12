@@ -211,8 +211,8 @@ function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'gener
         'transcript' => [
             'en' => [
                 'FMAS' => 'TransscriptComEn.php',
-                'FEDU' => 'TransscriptComEn.php',
-                'FERD' => 'TransscriptComEn.php',
+                'FEDU' => 'TransEduEcoEn.php',
+                'FERD' => 'TransEduEcoEn.php',
                 'FCS'  => 'TransscriptComEn.php',
                 'FMED' => 'TransMedVetEn.php',
                 'FVM'  => 'TransMedVetEn.php',
@@ -220,8 +220,8 @@ function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'gener
             ],
             'ar' => [
                 'FMAS' => 'TransscriptComAr.php',
-                'FEDU' => 'TransscriptComAr.php',
-                'FERD' => 'TransscriptComAr.php',
+                'FEDU' => 'TransEduEcoAr.php',
+                'FERD' => 'TransEduEcoAr.php',
                 'FCS'  => 'TransscriptComAr.php',
                 'FMED' => 'TransMedVetAr.php',
                 'FVM'  => 'TransMedVetAr.php',
