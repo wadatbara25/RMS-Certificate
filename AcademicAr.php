@@ -24,7 +24,7 @@ if (!$Certificate || !$row || !$Signatures) {
     die("لم يتم العثور على بيانات.");
 }
 
-$AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
+$AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
 $DateNow = date("Y/m/d");
 
 function divition($gpa) {
