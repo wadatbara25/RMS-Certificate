@@ -27,8 +27,7 @@ $GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['G
 $AddDate = $Certificate['AdmissionDate']->format('Y/m/d');
 $DateNow = date("Y/m/d");
 
-
-$sql = "SELECT * FROM AcademicRecord(?) ORDER BY SemesterID, SubjectNameEng";
+$sql = "SELECT * FROM TranscriptF(?) ORDER BY SemesterID, SubjectNameEng";
 $stmt = sqlsrv_query($conn, $sql, [$id]);
 
 if (!$stmt) {
@@ -41,13 +40,13 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $data[$semester][] = [
         'Subject' => $row['SubjectName'],
         'Hours' => $row['SubjectHours'],
-        'Grade' => $row['SubjectGrade'],
-        'GradePoints' => $row['GradePoint'] ?? 0,
+        'HoursTxt' => $row['SubjectHoursTxt'],
+        'GradeAr' => $row['SubjectGradeAr'],
+        'GradeEng' => $row['SubjectGradeEng'],
+        'GradePoints' => $row['GradePointN'] ?? 0,
     ];
 }
 
-
-// دوال حساب التقدير حسب المعدل
 function divition($gpa) {
     return match (true) {
         $gpa >= 3.50 => 'الأولى',
@@ -69,7 +68,6 @@ $General = 'شرف';
 $isHonorDegree = str_contains($Certificate['DegreeNameAr'], $General);
 $message = $isHonorDegree ? divition($Certificate['CGPA']) : divitionG($Certificate['CGPA']);
 $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
-
 ?>
 <!DOCTYPE html>
 <html lang="ar">
@@ -133,43 +131,28 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
     <tr align="center">
         <td colspan="3"><b>كلية <?= htmlspecialchars($Certificate['FacultyName']) ?></b></td>
     </tr>
-    </tr>
-      <tr align="center">
+    <tr align="center">
         <td colspan="3"><b><?php echo $Certificate['DegreeNameAr'];?></b></td>
-   
-     </tr>
-     <tr align="center">
-       
-       <td colspan="3"><b>شهـادة تفـاصيـل<hr class="new1"></b></td>
-  
     </tr>
-        
-    
-     
-     <tr align="right">
-        
+    <tr align="center">
+        <td colspan="3"><b>شهـادة تفـاصيـل<hr class="new1"></b></td>
+    </tr>
+    <tr align="right">
         <td><b>الجنسية: <u><?php echo $Certificate['StudentNationality'];?></u> </b> </td>
         <td colspan="2"> <b>الاسم:<u> <?php echo $Certificate['StudentName'];?> </u> </b> </td>
-        
     </tr>
-   
     <tr align="right">
-         <th colspan="2"><b><?php echo $Class;?> :</b>&nbsp;<u><?php echo $message;?> </u></th>
+        <th colspan="2"><b><?php echo $Class;?> :</b>&nbsp;<u><?php echo $message;?> </u></th>
         <th colspan="2"><b>التخصص :</b><u><?php echo $Certificate['SpecializationName'];?></u></th>   
     </tr>
-   
-     <tr align="right">
-        
+    <tr align="right">
         <th><b></b>&nbsp;<u><?php echo $GradDate;?> :تاريخ  التخرج</u></th>
         <th colspan="2"><b></b>&nbsp;<u><?php echo $AddDate;?> :تاريخ الالتحاق</u></th>
     </tr>
-    
-     <tr align="right">
-       
-         <th> <b></b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?>: الساعات المعتمدة الكلية</u></th>
-         <th colspan="2"></u></th>
+    <tr align="right">
+        <th> <b></b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?>: الساعات المعتمدة الكلية</u></th>
+        <th colspan="2"></u></th>
     </tr>
-   
     <tr><th colspan="3">
         <div align="center">
         <?php
@@ -181,12 +164,12 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         ?>
             <table class="T2" dir="rtl">
                 <tr>
-                    <td colspan="3" align="right" style="border:none;">الفصل الدراسي <?= htmlspecialchars($semester) ?>:</td>
+                    <td colspan="4" align="right" style="border:none;">الفصل الدراسي <?= htmlspecialchars($semester) ?>:</td>
                 </tr>
                 <tr bgcolor="#f2f2f2">
-                    <th width="70%">المقرر الدراسي</th>
-                    <th width="15%">الساعات</th>
-                    <th width="15%">التقدير</th>
+                    <th width="40%">المقرر الدراسي</th>
+                    <th width="20%">الساعات</th>
+                    <th width="20%">التقدير</th>
                 </tr>
                 <?php foreach ($entries as $entry): 
                     $semesterHours += (float)$entry['Hours'];
@@ -194,17 +177,16 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
                 ?>
                     <tr>
                         <td align="right"><?= htmlspecialchars($entry['Subject']) ?></td>
-                        <td><?= number_format($entry['Hours'], 0) ?></td>
-                        <td><?= htmlspecialchars($entry['Grade']) ?></td>
+                        <td><?= htmlspecialchars($entry['HoursTxt']) ?></td>
+                        <td><?= htmlspecialchars($entry['GradeAr']) ?></td>
                     </tr>
                 <?php endforeach; 
                     $TotalHs += $semesterHours;
                     $TotalGs += $semesterPoints;
                 ?>
                 <tr class="total-row">
-                    <td>المعدل الفصلي = <?= $semesterHours > 0 ? number_format($semesterPoints / $semesterHours, 2) : 'N/A' ?></td>
-                    <td><?= number_format($semesterHours, 0) ?></td>
-                    <td>المعدل التراكمي = <?= $TotalHs > 0 ? number_format($TotalGs / $TotalHs, 2) : 'N/A' ?></td>
+                    <td colspan="2">المعدل الفصلي = <?= $semesterHours > 0 ? number_format($semesterPoints / $semesterHours, 2) : 'N/A' ?></td>
+                    <td colspan="2">المعدل التراكمي = <?= $TotalHs > 0 ? number_format($TotalGs / $TotalHs, 2) : 'N/A' ?></td>
                 </tr>
             </table><br>
         <?php endforeach; ?>
