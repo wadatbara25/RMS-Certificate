@@ -2,6 +2,10 @@
 session_start();
 include 'db_connection.php';
 
+function safe($value) {
+    return htmlspecialchars($value ?? '');
+}
+
 if (!isset($_SESSION["username"])) {
     header("Location: login.php");
     exit();
@@ -41,7 +45,7 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
         'Subject' => $row['SubjectName'],
         'Hours' => $row['SubjectHours'],
         'HoursTxt' => $row['SubjectHoursTxt'],
-        'GradeAr' => $row['SubjectGradeAr'],
+        'GradeAr' => $row['SubjectGrade'],
         'GradeEng' => $row['SubjectGradeEng'],
         'GradePoints' => $row['GradePointN'] ?? 0,
     ];
@@ -117,7 +121,7 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         ?>
         <td colspan="2">
             <?php if (file_exists($imagePath)): ?>
-                <img class="student-photo" src="<?= htmlspecialchars($imagePath) ?>" alt="صورة الطالب" />
+                <img class="student-photo" src="<?= safe($imagePath) ?>" alt="صورة الطالب" />
             <?php else: ?>
                 <span style="color: gray; font-size: 14px;">📷 لا توجد صورة</span>
             <?php endif; ?>
@@ -125,32 +129,32 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         <th></th><th></th>
     </tr>
     <tr align="left">
-        <td><b style="font-family:'TimeNews'; font-size:11px;"><?= htmlspecialchars($Certificate['AdmissionFormNo']) ?> :الرقم الجامعي</b></td>
+        <td><b style="font-family:'TimeNews'; font-size:11px;"><?= safe($Certificate['AdmissionFormNo']) ?> :الرقم الجامعي</b></td>
         <td colspan="2"></td>
     </tr>
     <tr align="center">
-        <td colspan="3"><b>كلية <?= htmlspecialchars($Certificate['FacultyName']) ?></b></td>
+        <td colspan="3"><b>كلية <?= safe($Certificate['FacultyName']) ?></b></td>
     </tr>
     <tr align="center">
-        <td colspan="3"><b><?php echo $Certificate['DegreeNameAr'];?></b></td>
+        <td colspan="3"><b><?= safe($Certificate['DegreeNameAr']) ?></b></td>
     </tr>
     <tr align="center">
         <td colspan="3"><b>شهـادة تفـاصيـل<hr class="new1"></b></td>
     </tr>
     <tr align="right">
-        <td><b>الجنسية: <u><?php echo $Certificate['StudentNationality'];?></u> </b> </td>
-        <td colspan="2"> <b>الاسم:<u> <?php echo $Certificate['StudentName'];?> </u> </b> </td>
+        <td><b>الجنسية: <u><?= safe($Certificate['StudentNationality']) ?></u> </b> </td>
+        <td colspan="2"> <b>الاسم:<u> <?= safe($Certificate['StudentName']) ?> </u> </b> </td>
     </tr>
     <tr align="right">
-        <th colspan="2"><b><?php echo $Class;?> :</b>&nbsp;<u><?php echo $message;?> </u></th>
-        <th colspan="2"><b>التخصص :</b><u><?php echo $Certificate['SpecializationName'];?></u></th>   
+        <th colspan="2"><b><?= safe($Class) ?> :</b>&nbsp;<u><?= safe($message) ?> </u></th>
+        <th colspan="2"></th>   
     </tr>
     <tr align="right">
-        <th><b></b>&nbsp;<u><?php echo $GradDate;?> :تاريخ  التخرج</u></th>
-        <th colspan="2"><b></b>&nbsp;<u><?php echo $AddDate;?> :تاريخ الالتحاق</u></th>
+        <th><b></b>&nbsp;<u><?= safe($GradDate) ?> :تاريخ  التخرج</u></th>
+        <th colspan="2"><b></b>&nbsp;<u><?= safe($AddDate) ?> :تاريخ الالتحاق</u></th>
     </tr>
     <tr align="right">
-        <th> <b></b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?>: الساعات المعتمدة الكلية</u></th>
+        <th> <b></b> &nbsp;<u><?= safe($Certificate['C_Hours']) ?>: الساعات المعتمدة الكلية</u></th>
         <th colspan="2"></u></th>
     </tr>
     <tr><th colspan="3">
@@ -164,7 +168,7 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
         ?>
             <table class="T2" dir="rtl">
                 <tr>
-                    <td colspan="4" align="right" style="border:none;">الفصل الدراسي <?= htmlspecialchars($semester) ?>:</td>
+                    <td colspan="4" align="right" style="border:none;">الفصل الدراسي <?= safe($semester) ?>:</td>
                 </tr>
                 <tr bgcolor="#f2f2f2">
                     <th width="40%">المقرر الدراسي</th>
@@ -176,9 +180,9 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
                     $semesterPoints += (float)$entry['GradePoints'];
                 ?>
                     <tr>
-                        <td align="right"><?= htmlspecialchars($entry['Subject']) ?></td>
-                        <td><?= htmlspecialchars($entry['HoursTxt']) ?></td>
-                        <td><?= htmlspecialchars($entry['GradeAr']) ?></td>
+                        <td align="right"><?= safe($entry['Subject']) ?></td>
+                        <td><?= safe($entry['HoursTxt']) ?></td>
+                        <td><?= safe($entry['GradeAr']) ?></td>
                     </tr>
                 <?php endforeach; 
                     $TotalHs += $semesterHours;
@@ -200,9 +204,9 @@ $Class = $isHonorDegree ? 'المرتبة' : 'الدرجة';
     </tr>
     <tr align="center">
         <td>
-            <img class="signature" src="img/<?= htmlspecialchars($Signatures['ImgDeann']) ?>" alt="توقيع العميد" />
+            <img class="signature" src="img/<?= safe($Signatures['ImgDeann']) ?>" alt="توقيع العميد" />
         </td>
-        <td colspan="2">
+       <td colspan="2">
             <img class="signature" src="img/<?= htmlspecialchars($Signatures['Imgregg']) ?>" alt="توقيع المسجل" />
         </td>
     </tr>

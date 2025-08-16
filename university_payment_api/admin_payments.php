@@ -112,7 +112,7 @@ if (isset($_GET['export_excel'])) {
 <body class="p-4">
 <div class="container">
 
-    <h3 class="mb-4">بيانات الطلاب من الدالة StudentAllForPayment</h3>
+    <h3 class="mb-4">بيانات الطلاب </h3>
 
     <form method="get" class="row g-3 mb-4">
         <div class="col-md-3">

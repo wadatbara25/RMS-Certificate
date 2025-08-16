@@ -1,0 +1,7 @@
+RewriteEngine On
+RewriteBase /api/
+
+# إعادة توجيه الطلبات إلى index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)$ index.php [QSA,L]

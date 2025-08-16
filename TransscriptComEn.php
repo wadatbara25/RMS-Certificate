@@ -6,7 +6,9 @@ if (!isset($_SESSION["username"])) {
     header("Location: login.php");
     exit();
 }
-
+function safe($value) {
+    return htmlspecialchars($value ?? '');
+}
 $selectedServer = $_SESSION["server"];
 $id = $_GET["id"] ?? null;
 
@@ -29,7 +31,7 @@ $DateNow = date("Y/m/d");
 
 
 
-$sql = "SELECT * FROM AcademicRecord(?) ORDER BY SemesterID, SubjectNameEng";
+$sql = "SELECT * FROM TranscriptF(?) ORDER BY SemesterID, SubjectNameEng";
 $stmt = sqlsrv_query($conn, $sql, [$id]);
 
 if (!$stmt) {
@@ -42,11 +44,12 @@ while ($row = sqlsrv_fetch_array($stmt, SQLSRV_FETCH_ASSOC)) {
     $data[$semester][] = [
         'Subject' => $row['SubjectNameEng'],
         'Hours' => $row['SubjectHours'],
-        'Grade' => $row['SubjectGradeEng'],
-        'GradePoints' => $row['GradePoint'] ?? 0,
+        'HoursTxt' => $row['SubjectHoursTxt'],
+        'GradeAr' => $row['SubjectGradeAr'],
+        'GradeEng' => $row['SubjectGradeEng'],
+        'GradePoints' => $row['GradePointN'] ?? 0,
     ];
 }
-
 // تاريخ التخرج وتاريخ اليوم
 $GradDate = $Certificate['GraduationDate'] instanceof DateTime ? $Certificate['GraduationDate']->format('d/m/Y') : '';
 $DateNow = date("d/m/Y");
@@ -150,6 +153,11 @@ $Class = $isHonors ? 'Class' : 'Degree';
         <td><b>Nationality: <u><?= htmlspecialchars($Certificate['StudentNationalityEng']) ?></u></b></td>
         <td colspan="2"><b>Name: <u><?= htmlspecialchars($Certificate['StudentNameEng']) ?></u></b></td>
     </tr>
+     <tr align="left">
+        
+         <th ><b><?php echo $Class;?> </b>&nbsp;<u><?php echo $message;?> </u></th>
+        <th colspan="2"></th>   
+    </tr>
          <tr align="left">
         
         <th><b></b>&nbsp;<u><?php echo $GradDate;?> :Graduation Date</u></th>
@@ -159,7 +167,7 @@ $Class = $isHonors ? 'Class' : 'Degree';
      <tr align="left">
        
          <th> <b></b> &nbsp;<u><?php  echo $Certificate['C_Hours']; ?>:Total Credit Hours</u></th>
-         <th colspan="2"><b><?php echo $Class;?> </b>&nbsp;<u><?php echo $message;?> </u></th>
+         <th colspan="2"></th>
     </tr>
 
     <tr><th colspan="3">
@@ -186,8 +194,8 @@ $Class = $isHonors ? 'Class' : 'Degree';
                 ?>
                     <tr>
                         <td align="left"><?= htmlspecialchars($entry['Subject']) ?></td>
-                        <td><?= number_format($entry['Hours'], 0) ?></td>
-                        <td><?= htmlspecialchars($entry['Grade']) ?></td>
+                        <td><?= safe($entry['HoursTxt']) ?></td>
+                        <td><?= htmlspecialchars($entry['GradeEng']) ?></td>
                     </tr>
                 <?php endforeach; 
                     $TotalHs += $semesterHours;

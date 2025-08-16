@@ -225,7 +225,7 @@ function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'gener
                 'FCS'  => 'TransscriptComAr.php',
                 'FMED' => 'TransMedVetAr.php',
                 'FVM'  => 'TransMedVetAr.php',
-                'default' => 'TransMedVetAr.php',
+                'default' => 'TransEduEcoAr.php',
             ],
         ]
     ];
