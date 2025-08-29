@@ -56,6 +56,24 @@ $DateNow = date("d/m/Y");
 $AddDate = $Certificate['AdmissionDate']->format('d/m/Y');
 
 
+// Division calculation
+function divisionWithHonors($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'First Class',
+        $gpa >= 3.00 => 'Second Class - Division One',
+        $gpa >= 2.50 => 'Second Class - Division Two',
+        default => 'Third Class'
+    };
+}
+
+function divisionGeneral($gpa) {
+    return match (true) {
+        $gpa >= 3.50 => 'First Class',
+        $gpa >= 2.50 => 'Second Class',
+        default => 'Third Class'
+    };
+}
+
 $isHonors = str_contains($Certificate['DegreeNameEn'], 'Honours');
 $message = $isHonors ? divisionWithHonors($Certificate['CGPA']) : divisionGeneral($Certificate['CGPA']);
 $Class = $isHonors ? 'Class' : 'Degree';
@@ -135,7 +153,7 @@ $Class = $isHonors ? 'Class' : 'Degree';
         <td><b>Nationality: <u><?= htmlspecialchars($Certificate['StudentNationalityEng']) ?></u></b></td>
         <td colspan="2"><b>Name: <u><?= htmlspecialchars($Certificate['StudentNameEng']) ?></u></b></td>
     </tr>
-    
+     
          <tr align="left">
         
         <th><b></b>&nbsp;<u><?php echo $GradDate;?> :Graduation Date</u></th>
