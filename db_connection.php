@@ -190,7 +190,7 @@ function getFacilityLink(string $lnk, string $lang = 'en', string $type = 'gener
     $files = [
         'general' => [
             'en' => [
-                'FMAS' => 'GeneralNursEn.php',
+                'FMAS' => 'GeneralComEn.php',
                 'FEDU' => 'GeneralEduEcoEn.php',
                 'FERD' => 'GeneralEduEcoEn.php',
                 'FCS'  => 'GeneralComEn.php',
